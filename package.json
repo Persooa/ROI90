@@ -1,0 +1,13 @@
+{
+  "name": "roi90-widgets",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo ramek rekomendacyjnych dla działu sprzedaży (recommendation frame demos for sales)",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --serve --watch"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

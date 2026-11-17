@@ -1,0 +1,24 @@
+{
+  "type": "last_seen",
+  "count": 8,
+  "title": "Ostatnio oglądane",
+  "subtitle": "",
+  "step": "card",
+  "autoplay": false,
+  "autoplayMs": 5000,
+  "texts": {
+    "prev": "Poprzednie produkty",
+    "next": "Następne produkty",
+    "dots": "Wybierz produkt",
+    "dot": "Produkt {i} z {n}",
+    "wishAdd": "Dodaj do ulubionych: {name}",
+    "wishRemove": "Usuń z ulubionych: {name}",
+    "wishAdded": "Dodano do ulubionych",
+    "wishRemoved": "Usunięto z ulubionych",
+    "productToast": "W realnym wdrożeniu: przejście do karty produktu",
+    "badgeNew": "Nowość",
+    "badgeBestseller": "Bestseller",
+    "oldPricePrefix": "Cena przed obniżką:",
+    "pricePrefix": "Cena:"
+  }
+}
