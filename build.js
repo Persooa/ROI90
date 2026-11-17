@@ -1,0 +1,323 @@
+#!/usr/bin/env node
+/* =====================================================================
+   build.js – builds standalone HTML files into dist/
+   No dependencies. Node >= 18.
+
+   Loop: placements/*\/config.json → builds[] → dist/{vertical}/{placement}__{widget}.html
+   (each build entry = one output file)
+
+   Usage:
+     node build.js                 – build
+     node build.js --serve         – build + local server on port 5173
+     node build.js --serve --watch – + rebuild on file change
+   ===================================================================== */
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+
+const ROOT = __dirname;
+const DIST = path.join(ROOT, 'dist');
+const args = process.argv.slice(2);
+const PORT = Number((args.find((a) => a.startsWith('--port=')) || '').split('=')[1]) || 5173;
+
+// --- Helpers ----------------------------------------------------------
+const p = (...parts) => path.join(ROOT, ...parts);
+const read = (file) => fs.readFileSync(file, 'utf8');
+const readOptional = (file) => (fs.existsSync(file) ? read(file) : '');
+const isAbsoluteUrl = (s) => /^(https?:)?\/\//i.test(s);
+
+function readJson(file) {
+  const txt = readOptional(file).trim();
+  if (!txt) return null; // empty file = no config
+  return JSON.parse(txt);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// JSON safe to embed inside <script>
+function scriptJson(value) {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+/**
+ * Single-pass {{key}} replacement – inserted content is not re-scanned.
+ */
+function fill(template, vars, where) {
+  // A placeholder inside an HTML comment would break the page
+  for (const c of template.match(/<!--[\s\S]*?-->/g) || []) {
+    if (/\{\{\w+\}\}/.test(c)) throw new Error(`placeholder {{…}} w komentarzu HTML w ${where} (placeholder inside HTML comment)`);
+  }
+  const used = new Set();
+  const result = template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    used.add(key);
+    if (Object.prototype.hasOwnProperty.call(vars, key)) return vars[key];
+    console.warn(`  ! brak wartości dla {{${key}}} w ${where} (missing value)`);
+    return '';
+  });
+  // A value with no placeholder usually means the template was broken (e.g. by a formatter)
+  for (const key of Object.keys(vars)) {
+    if (!used.has(key)) console.warn(`  ! brak placeholdera {{${key}}} w ${where} – wartość nie została wstawiona (placeholder missing)`);
+  }
+  return result;
+}
+
+function copyDir(src, dest) {
+  if (!fs.existsSync(src)) return 0;
+  let count = 0;
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue; // skip dotfiles such as .gitkeep
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) count += copyDir(from, to);
+    else { fs.mkdirSync(dest, { recursive: true }); fs.copyFileSync(from, to); count++; }
+  }
+  return count;
+}
+
+// --- Product data -----------------------------------------------------
+const catalogCache = new Map();
+function loadCatalog(vertical) {
+  if (!catalogCache.has(vertical)) {
+    const data = readJson(p('data', vertical, 'products.json'));
+    const list = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
+    catalogCache.set(vertical, list);
+  }
+  return catalogCache.get(vertical);
+}
+
+const num = (v) => {
+  const n = typeof v === 'string' ? parseFloat(v.replace(',', '.')) : v;
+  return typeof n === 'number' && Number.isFinite(n) ? n : null;
+};
+
+/**
+ * Normalize to the fields used by widgets.
+ * In products.json: price = regular price, salePrice = promo price.
+ */
+function normalizeProduct(raw) {
+  const regular = num(raw.price);
+  const sale = num(raw.salePrice);
+  const current = sale != null ? sale : regular;
+  let old = num(raw.oldPrice);
+  if (old == null && sale != null && regular != null) old = regular;
+  const hasDiscount = current != null && old != null && old > current;
+
+  let image = raw.image || raw.imageUrl || raw.img || '';
+  if (image && !isAbsoluteUrl(image)) image = 'img/' + path.basename(image); // relative path
+
+  return {
+    id: String(raw.id != null ? raw.id : raw.sku || ''),
+    name: raw.title || raw.name || '',
+    url: raw.url || raw.link || '#',
+    image,
+    brand: raw.brand || null,
+    price: current,
+    oldPrice: hasDiscount ? old : null,
+    discountPct: hasDiscount ? (num(raw.discountPct) != null ? num(raw.discountPct) : Math.round((1 - current / old) * 100)) : null,
+    badge: raw.badge || null,
+    currency: raw.currency || 'PLN'
+  };
+}
+
+function pickProducts(catalog, pick, count) {
+  const byId = new Map(catalog.map((x) => [String(x.id), x]));
+  const out = [];
+  for (const id of Array.isArray(pick) ? pick : []) {
+    const found = byId.get(String(id));
+    if (found) out.push(found);
+    else console.warn(`  ! produkt ${id} nie istnieje w katalogu (product not found)`);
+  }
+  // fill up to `count` with further catalog items
+  for (const item of catalog) {
+    if (out.length >= count) break;
+    if (!out.includes(item)) out.push(item);
+  }
+  return out.slice(0, count);
+}
+
+// --- Single build -----------------------------------------------------
+function buildOne(placementCfg, entry) {
+  const placement = placementCfg.placement;
+  const { vertical, widget } = entry;
+  const widgetDir = p('widgets', widget);
+  if (!fs.existsSync(path.join(widgetDir, 'widget.html'))) throw new Error(`brak widgets/${widget}/widget.html`);
+
+  const defaults = readJson(path.join(widgetDir, 'widget.json')) || {};
+  const settings = { ...defaults, ...entry, texts: { ...(defaults.texts || {}), ...(entry.texts || {}) } };
+  const count = settings.count || 8;
+
+  const products = pickProducts(loadCatalog(vertical), settings.pick, count).map(normalizeProduct);
+  if (!products.length) console.warn(`  ! brak produktów dla ${vertical} (no products)`);
+
+  const widgetId = `w-${widget}`;
+  const texts = settings.texts;
+
+  // 1) Widget
+  const widgetHtml = fill(read(path.join(widgetDir, 'widget.html')), {
+    widgetId,
+    title: escapeHtml(settings.title),
+    subtitleHtml: settings.subtitle ? `<p class="w-subtitle">${escapeHtml(settings.subtitle)}</p>` : '',
+    labelPrev: escapeHtml(texts.prev),
+    labelNext: escapeHtml(texts.next),
+    labelDots: escapeHtml(texts.dots)
+  }, `widgets/${widget}/widget.html`);
+
+  // 2) Placement mock
+  const mockHtml = fill(read(p('placements', placement, 'mock.html')), {
+    frameLabel: escapeHtml(settings.frameLabel || ''),
+    widget: widgetHtml
+  }, `placements/${placement}/mock.html`);
+
+  // 3) CSS: theme → core → widget
+  const css = [
+    `/* themes/${vertical}.css */`, read(p('themes', `${vertical}.css`)),
+    '/* core/base.css */', read(p('core', 'base.css')),
+    `/* widgets/${widget}/widget.css */`, readOptional(path.join(widgetDir, 'widget.css'))
+  ].join('\n');
+
+  // 4) JS: core → widget
+  const js = [
+    '/* core/tracker.js */', read(p('core', 'tracker.js')),
+    '/* core/carousel.js */', read(p('core', 'carousel.js')),
+    `/* widgets/${widget}/widget.js */`, read(path.join(widgetDir, 'widget.js'))
+  ].join('\n');
+
+  // 5) OG: first product image
+  const first = products[0] || {};
+  const baseUrl = (settings.baseUrl || placementCfg.baseUrl || '').replace(/\/$/, '');
+  const outName = `${placement}__${widget}.html`;
+  let ogImage = first.image || '';
+  if (ogImage && !isAbsoluteUrl(ogImage) && baseUrl) ogImage = `${baseUrl}/${vertical}/${ogImage}`;
+
+  const config = {
+    vertical,
+    placement,
+    widget,
+    widgetType: settings.type || widget.replace(/-/g, '_'),
+    step: settings.step,
+    autoplay: !!settings.autoplay,
+    autoplayMs: settings.autoplayMs,
+    texts
+  };
+
+  const html = fill(read(p('core', 'page-shell.html')), {
+    pageTitle: escapeHtml(settings.pageTitle || settings.title),
+    pageDescription: escapeHtml(settings.pageDescription || ''),
+    ogImage: escapeHtml(ogImage),
+    ogImageAlt: escapeHtml(first.name || ''),
+    ogUrlTag: baseUrl ? `<meta property="og:url" content="${escapeHtml(`${baseUrl}/${vertical}/${outName}`)}">` : '',
+    css,
+    mock: mockHtml,
+    templates: readOptional(path.join(widgetDir, 'product-card.html')),
+    configJson: scriptJson(config),
+    productsJson: scriptJson(products),
+    js
+  }, 'core/page-shell.html');
+
+  const outDir = path.join(DIST, vertical);
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, outName), html);
+
+  return { vertical, placement, widget, file: `${vertical}/${outName}`, title: settings.pageTitle || settings.title, products: products.length, kb: Math.round(Buffer.byteLength(html) / 1024) };
+}
+
+// --- Full build -------------------------------------------------------
+function build() {
+  const t0 = Date.now();
+  catalogCache.clear();
+  fs.rmSync(DIST, { recursive: true, force: true });
+  fs.mkdirSync(DIST, { recursive: true });
+
+  const results = [];
+  const verticals = new Set();
+
+  for (const dir of fs.readdirSync(p('placements')).sort()) {
+    const cfgFile = p('placements', dir, 'config.json');
+    let cfg;
+    try { cfg = readJson(cfgFile); } catch (e) {
+      console.warn(`- placements/${dir}: niepoprawny JSON, pomijam (invalid JSON, skipped): ${e.message}`);
+      continue;
+    }
+    if (!cfg || !Array.isArray(cfg.builds) || !cfg.builds.length) continue; // empty config = placement not ready yet
+    cfg.placement = cfg.placement || dir;
+
+    for (const entry of cfg.builds) {
+      try {
+        const r = buildOne(cfg, entry);
+        results.push(r);
+        verticals.add(r.vertical);
+        console.log(`✓ ${r.file}  (${r.products} produktów, ${r.kb} KB)`);
+      } catch (e) {
+        console.error(`✗ ${cfg.placement} / ${entry.widget} / ${entry.vertical}: ${e.message}`);
+        process.exitCode = 1;
+      }
+    }
+  }
+
+  // Local images: data/{v}/img → dist/{v}/img
+  for (const v of verticals) {
+    const n = copyDir(p('data', v, 'img'), path.join(DIST, v, 'img'));
+    if (n) console.log(`✓ ${v}/img  (${n} plików)`);
+  }
+
+  // Link index + .nojekyll for GitHub Pages
+  const list = results.map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`).join('\n');
+  fs.writeFileSync(path.join(DIST, 'index.html'),
+    `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Demo ROI – ramki</title>
+<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#111;background:#fff}li{margin:8px 0}small{color:#666;margin-left:6px}</style></head>
+<body><h1>Demo ROI – ramki rekomendacyjne</h1><ul>${list}</ul></body></html>`);
+  fs.writeFileSync(path.join(DIST, '.nojekyll'), '');
+
+  console.log(`Gotowe w ${Date.now() - t0} ms → dist/ (Done)`);
+  return results;
+}
+
+// --- Dev server -------------------------------------------------------
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+  '.webp': 'image/webp', '.svg': 'image/svg+xml', '.gif': 'image/gif', '.avif': 'image/avif', '.ico': 'image/x-icon'
+};
+
+function serve() {
+  http.createServer((req, res) => {
+    let urlPath;
+    try { urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { urlPath = '/'; }
+    let file = path.normalize(path.join(DIST, urlPath));
+    if (!file.startsWith(DIST)) { res.writeHead(403); return res.end('403'); } // path traversal guard
+    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+    fs.readFile(file, (err, buf) => {
+      if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('404 – nie znaleziono (not found)'); }
+      res.writeHead(200, { 'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+      res.end(buf);
+    });
+  }).listen(PORT, () => {
+    console.log(`\nSerwer (server): http://localhost:${PORT}/`);
+    console.log(`Widget: http://localhost:${PORT}/home/home-page__last-seen.html?lead=test`);
+  });
+}
+
+function watch() {
+  let timer;
+  const rebuild = (event, file) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { console.log(`\n↻ zmiana (change): ${file || ''}`); try { build(); } catch (e) { console.error(e.message); } }, 150);
+  };
+  for (const dir of ['core', 'themes', 'widgets', 'placements', 'data']) {
+    try { fs.watch(p(dir), { recursive: true }, rebuild); } catch (e) { console.warn(`! watch ${dir}: ${e.message}`); }
+  }
+  console.log('Obserwuję zmiany (watching)…');
+}
+
+build();
+if (args.includes('--serve')) serve();
+if (args.includes('--watch')) watch();

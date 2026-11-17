@@ -1,0 +1,27 @@
+<!--
+  Product card template.
+  Filled in widget.js via data-slot attributes.
+  Missing data (e.g. oldPrice, badge) = element stays hidden.
+-->
+<template id="w-product-card">
+  <article class="w-card">
+    <a class="w-card__link" data-slot="link" href="#">
+      <div class="w-card__media" data-slot="media">
+        <span class="w-card__badge" data-slot="badge" hidden></span>
+        <img class="w-card__img" data-slot="image" src="" alt="" loading="lazy" decoding="async" width="400" height="400">
+      </div>
+      <div class="w-card__body">
+        <div class="w-card__price">
+          <span class="w-card__price-now" data-slot="price"></span>
+          <s class="w-card__price-old" data-slot="oldPrice" hidden></s>
+        </div>
+        <h3 class="w-card__name" data-slot="name"></h3>
+      </div>
+    </a>
+    <button class="w-card__wish" type="button" data-slot="wish" aria-pressed="false" aria-label="">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8.1 3.4 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.6 0 5.5 3.6 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </article>
+</template>

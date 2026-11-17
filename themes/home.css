@@ -1,0 +1,72 @@
+/* =====================================================================
+   Theme: HOME – home & interior
+   CSS variables only – widgets contain no hard-coded values.
+   Swap this file = new look.
+   ===================================================================== */
+:root {
+  /* Typography */
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-heading: Georgia, "Times New Roman", serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-price: 18px;
+  --font-size-title: clamp(22px, 2.2vw + 12px, 30px);
+  --font-weight-title: 400;
+  --font-weight-price: 700;
+  --line-height-base: 1.45;
+
+  /* Colors */
+  --color-bg: #ffffff;              /* widget background */
+  --color-surface: #f4f1ec;         /* image background */
+  --color-text: #1f1c19;
+  --color-text-muted: #7a736b;
+  --color-accent: #8a5a3b;          /* price, active dash */
+  --color-accent-contrast: #ffffff;
+  --color-border: #ddd6cc;
+  --color-price-old: #9b948c;
+  --color-badge-sale-bg: #b3261e;
+  --color-badge-sale-text: #ffffff;
+  --color-badge-new-bg: #2f4a3a;
+  --color-badge-new-text: #ffffff;
+  --color-badge-best-bg: #e9c46a;
+  --color-badge-best-text: #1f1c19;
+  --color-wish: #b3261e;            /* active heart */
+  --color-focus: #8a5a3b;
+  --color-dash: #d9d2c7;            /* inactive dash */
+
+  /* Shapes */
+  --radius-widget: 0px;
+  --radius-card: 4px;
+  --radius-image: 4px;
+  --radius-badge: 2px;
+  --radius-button: 999px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 40px;
+  --carousel-gap: 16px;
+  --title-underline-width: 80px;
+  --title-underline-height: 2px;
+
+  /* Carousel – visible cards per breakpoint */
+  --cards-mobile: 2.25;
+  --cards-tablet: 3;
+  --cards-desktop: 4;
+  --cards-wide: 5;
+  --image-ratio: 1 / 1;
+  --card-text-align: center;
+  --arrow-size: 40px;
+  --dash-width: 24px;
+  --dash-width-active: 32px;
+  --dash-height: 2px;
+
+  /* Effects */
+  --shadow-card-hover: 0 8px 24px rgba(31, 28, 25, 0.10);
+  --card-hover-lift: -3px;
+  --image-hover-scale: 1.04;
+  --transition-fast: 160ms ease;
+}
