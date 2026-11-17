@@ -1,0 +1,224 @@
+<style>
+  .rk-bar {
+    --rk-b-bg: var(--rk-bar-bg, var(--rk-accent, #111));
+    --rk-b-fg: var(--rk-bar-text, #fff);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: var(--rk-b-bg);
+    color: var(--rk-b-fg);
+    font: 14px/1.3 var(--rk-font, system-ui, -apple-system, "Segoe UI", sans-serif)
+  }
+
+  .rk-bar, .rk-bar * {
+    box-sizing: border-box
+  }
+
+  .rk-bar[hidden] {
+    display: none !important
+  }
+
+  .rk-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 48px 10px 16px;
+    min-height: 48px
+  }
+
+  .rk-bar__text {
+    margin: 0;
+    text-align: center
+  }
+
+  .rk-bar__text strong {
+    font-weight: 700;
+    margin-right: 6px
+  }
+
+  .rk-bar__cta {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    padding: 8px 18px;
+    background: var(--rk-b-fg);
+    color: var(--rk-b-bg);
+    font: inherit;
+    font-weight: 700;
+    border-radius: var(--rk-radius, 6px);
+    white-space: nowrap
+  }
+
+  .rk-bar__cta:hover {
+    opacity: .9
+  }
+
+  .rk-bar__cta:focus-visible, .rk-bar__close:focus-visible {
+    outline: 2px solid var(--rk-b-fg);
+    outline-offset: 2px
+  }
+
+  .rk-bar__close {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: .8
+  }
+
+  .rk-bar__close:hover {
+    opacity: 1
+  }
+
+  .rk-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 3px 3px 3px 14px;
+    border: 2px dashed currentColor;
+    border-radius: var(--rk-radius, 6px)
+  }
+
+  .rk-code__value {
+    font: 700 16px ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: .1em
+  }
+
+  .rk-code .rk-bar__cta {
+    padding: 6px 14px;
+    min-width: 112px
+  }
+
+  .rk-bar__status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0)
+  }
+
+  @media (max-width: 640px) {
+    .rk-bar {
+      font-size: 13px
+    }
+
+    .rk-bar__inner {
+      padding: 10px 40px 10px 12px;
+      gap: 8px 12px
+    }
+
+    .rk-bar__close {
+      top: 8px;
+      transform: none;
+      right: 4px
+    }
+  }
+</style>
+
+<div class="rk-bar rk-bar--code" data-rk-bar="code" role="region" aria-label="Kod rabatowy">
+  <div class="rk-bar__inner">
+    <p class="rk-bar__text"><strong>Tylko dziś: -25% na cały asortyment</strong><span>Użyj kodu przy kasie</span>
+    </p>
+    <div class="rk-code">
+      <span class="rk-code__value" data-rk-code>SALE25</span>
+      <button class="rk-bar__cta" type="button" data-rk-copy>Kopiuj kod</button>
+    </div>
+  </div>
+  <button class="rk-bar__close" type="button" aria-label="Zamknij belkę" data-rk-close>&times;
+  </button>
+  <span class="rk-bar__status" role="status" aria-live="polite"></span>
+</div>
+
+<script>
+  (function () {
+    var bar = document.querySelector('[data-rk-bar="code"]');
+    if (!bar) return;
+
+    var KEY = 'rk_bar_code_closed';
+    var codeEl = bar.querySelector('[data-rk-code]');
+    var copyBtn = bar.querySelector('[data-rk-copy]');
+    var status = bar.querySelector('.rk-bar__status');
+    var label = copyBtn.textContent;
+    var timer = null;
+
+    function track(name, data) {
+      data = data || {};
+      if (typeof window.track === 'function') window.track(name, data);
+      else console.log('[rk-bar]', name, data);
+    }
+
+    function isClosed() {
+      try {
+        return sessionStorage.getItem(KEY) === '1';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function setClosed() {
+      try {
+        sessionStorage.setItem(KEY, '1');
+      } catch (e) {
+      }
+    }
+
+    function copy(text) {
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+      return new Promise(function (resolve, reject) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch (e) {
+        }
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error('copy failed'));
+      });
+    }
+
+    if (isClosed()) bar.hidden = true;
+    else track('bar.view', {bar: 'code'});
+
+    copyBtn.addEventListener('click', function () {
+      var code = codeEl.textContent.trim();
+      copy(code).then(function () {
+        copyBtn.textContent = 'Skopiowano ✓';
+        status.textContent = 'Kod ' + code + ' skopiowany do schowka';
+        track('code.copy', {code: code});
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          copyBtn.textContent = label;
+          status.textContent = '';
+        }, 2000);
+      }).catch(function () {
+        copyBtn.textContent = 'Zaznacz i skopiuj';
+      });
+    });
+
+    bar.querySelector('[data-rk-close]').addEventListener('click', function () {
+      track('bar.close', {bar: 'code'});
+      bar.hidden = true;
+      setClosed();
+    });
+  })();
+</script>
