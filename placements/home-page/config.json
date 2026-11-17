@@ -1,0 +1,18 @@
+{
+  "placement": "home-page",
+  "label": "Strona główna",
+  "builds": [
+    {
+      "vertical": "home",
+      "widget": "last-seen",
+      "frameLabel": "Scenariusz ROI · Ostatnio oglądane na stronie głównej",
+      "pageTitle": "Ostatnio oglądane – strona główna | Demo ROI",
+      "pageDescription": "Demo ramki rekomendacyjnej „Ostatnio oglądane” na stronie głównej sklepu – wersja desktop i mobile.",
+      "title": "Ostatnio oglądane",
+      "pick": ["NH10264", "NH10004", "NH10432", "NH10597", "NH10595", "NH10758", "NH10895", "NH10936"],
+      "autoplay": false,
+      "autoplayMs": 5000,
+      "step": "card"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+<!-- Widget: Last seen -->
+<section class="w-widget w-last-seen" id="{{widgetId}}" aria-labelledby="{{widgetId}}-title" data-widget="last-seen">
+  <h2 class="w-title" id="{{widgetId}}-title">{{title}}</h2>
+  {{subtitleHtml}}
+  <div class="w-carousel" data-carousel>
+    <!-- DOM order = Tab order: prev → cards → next -->
+    <button class="w-carousel__arrow w-carousel__arrow--prev" type="button" data-carousel-prev aria-label="{{labelPrev}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </button>
+    <div class="w-carousel__viewport" data-carousel-viewport tabindex="0" role="region" aria-roledescription="karuzela" aria-label="{{title}}">
+      <!-- cards rendered by widget.js -->
+    </div>
+    <button class="w-carousel__arrow w-carousel__arrow--next" type="button" data-carousel-next aria-label="{{labelNext}}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+  <ol class="w-dots" data-carousel-dots aria-label="{{labelDots}}"></ol>
+</section>
