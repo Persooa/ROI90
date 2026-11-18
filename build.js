@@ -83,6 +83,33 @@ function copyDir(src, dest) {
   return count;
 }
 
+// --- Index page -------------------------------------------------------
+// Files from core/ that the index page needs; copied next to dist/index.html
+const INDEX_ASSETS = ['index.css', 'logo.svg'];
+
+// Renders core/index.html into dist/index.html: only the list is injected, all markup and styling live in core/
+function renderIndex(results) {
+  const tplFile = p('core', 'index.html');
+  if (!fs.existsSync(tplFile)) throw new Error('brak szablonu core/index.html (template missing)');
+  const tpl = read(tplFile);
+
+  const placeholder = /\{\{\s*list\s*\}\}/;
+  if (!placeholder.test(tpl)) throw new Error('core/index.html nie zawiera znacznika {{ list }} (placeholder missing)');
+
+  const list = results
+    .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`)
+    .join('\n      ');
+
+  // Replacer function, so "$" characters in the list are never treated as patterns
+  fs.writeFileSync(path.join(DIST, 'index.html'), tpl.replace(placeholder, () => list));
+
+  for (const name of INDEX_ASSETS) {
+    const src = p('core', name);
+    if (fs.existsSync(src)) fs.copyFileSync(src, path.join(DIST, name));
+    else console.warn(`- core/${name}: brak pliku, pomijam (missing, skipped)`);
+  }
+}
+
 // --- Product data -----------------------------------------------------
 const catalogCache = new Map();
 function loadCatalog(vertical) {
@@ -188,6 +215,7 @@ function buildOne(placementCfg, entry) {
   const js = [
     '/* core/tracker.js */', read(p('core', 'tracker.js')),
     '/* core/carousel.js */', read(p('core', 'carousel.js')),
+    '/* core/popup.js */', read(p('core', 'popup.js')),
     `/* widgets/${widget}/widget.js */`, read(path.join(widgetDir, 'widget.js'))
   ].join('\n');
 
@@ -270,11 +298,12 @@ function build() {
   }
 
   // Link index + .nojekyll for GitHub Pages
-  const list = results.map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`).join('\n');
-  fs.writeFileSync(path.join(DIST, 'index.html'),
-    `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Demo ROI – ramki</title>
-<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#111;background:#fff}li{margin:8px 0}small{color:#666;margin-left:6px}</style></head>
-<body><h1>Demo ROI – ramki rekomendacyjne</h1><ul>${list}</ul></body></html>`);
+  try {
+    renderIndex(results);
+  } catch (e) {
+    console.error(`✗ index.html: ${e.message}`);
+    process.exitCode = 1;
+  }
   fs.writeFileSync(path.join(DIST, '.nojekyll'), '');
 
   console.log(`Gotowe w ${Date.now() - t0} ms → dist/ (Done)`);
