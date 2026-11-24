@@ -1,0 +1,18 @@
+{
+  "placement": "product-page",
+  "label": "Karta produktu",
+  "builds": [
+    {
+      "vertical": "home",
+      "widget": "similar",
+      "frameLabel": "Scenariusz ROI · Podobne produkty na karcie produktu",
+      "pageTitle": "Podobne produkty – karta produktu | Demo ROI",
+      "pageDescription": "Demo ramki rekomendacyjnej „Podobne produkty” na karcie produktu – wersja desktop i mobile.",
+      "title": "Podobne produkty",
+      "anchor": "NH10597",
+      "pick": ["NH10604", "NH10610", "NH10619"],
+      "autoplay": false,
+      "step": "card"
+    }
+  ]
+}

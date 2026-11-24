@@ -1,0 +1,196 @@
+/* =====================================================================
+   widgets/similar/widget.css – heading, overlay arrows, product card
+   Theme variables only. Scoped to .w-similar (overrides of core/base.css).
+   ===================================================================== */
+
+/* ---------- Heading: left-aligned, bold, no dash ---------- */
+.w-similar .w-title {
+  margin-bottom: var(--space-4);
+  font-weight: 700;
+  text-align: left;
+}
+.w-similar .w-title::after { display: none; }
+.w-similar .w-subtitle { margin-top: calc(-1 * var(--space-2)); text-align: left; }
+
+/* ---------- Arrows: round buttons overlaid on the carousel edges ---------- */
+.w-similar .w-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: 0;
+  box-shadow: var(--arrow-overlay-shadow);
+  transform: translateY(-50%);
+  transition: transform var(--transition-fast);
+}
+.w-similar .w-carousel__arrow svg { width: 20px; height: 20px; }
+.w-similar .w-carousel__arrow--prev { left: calc(var(--arrow-size) / -2); }
+.w-similar .w-carousel__arrow--next { right: calc(var(--arrow-size) / -2); }
+.w-similar .w-carousel__arrow:hover {
+  color: var(--color-accent-contrast);
+  transform: translateY(-50%) scale(1.08);
+}
+
+@media (min-width: 640px) {
+  /* arrows are absolutely positioned, so the viewport takes the full width */
+  .w-similar .w-carousel { grid-template-columns: minmax(0, 1fr); }
+  .w-similar .w-dots { display: none; }
+}
+
+/* ---------- Card ---------- */
+.w-similar .w-card {
+  position: relative;
+  height: 100%;
+  text-align: left;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.w-similar .w-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.w-similar .w-card__media {
+  position: relative;
+  aspect-ratio: var(--image-ratio);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.w-similar .w-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 300ms ease;
+}
+.w-similar .w-card__media.is-broken .w-card__img { visibility: hidden; }
+
+/* Ribbons: top-left, stacked, slanted right edge */
+.w-similar .w-card__ribbons {
+  position: absolute;
+  top: var(--space-2);
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.w-similar .w-card__ribbons[hidden] { display: none; }
+.w-similar .w-card__ribbon {
+  padding: 2px calc(var(--space-2) + 8px) 2px var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+.w-similar .w-card__ribbon--new {
+  background: var(--color-badge-new-bg);
+  color: var(--color-badge-new-text);
+}
+.w-similar .w-card__ribbon--sale {
+  background: var(--color-badge-sale-bg);
+  color: var(--color-badge-sale-text);
+}
+.w-similar .w-card__ribbon--bestseller {
+  background: var(--color-badge-best-bg);
+  color: var(--color-badge-best-text);
+}
+
+/* Body */
+.w-similar .w-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2) var(--space-2);
+}
+
+.w-similar .w-card__category {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.w-similar .w-card__category[hidden] { display: none; }
+
+/* Name: bold, max 2 lines */
+.w-similar .w-card__name {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  line-height: var(--line-height-base);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: calc(2em * var(--line-height-base));
+}
+
+/* Price block pinned to the bottom, so prices line up across cards */
+.w-similar .w-card__price {
+  margin: auto 0 0;
+  padding-top: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-price);
+  font-weight: var(--font-weight-price);
+  white-space: nowrap;
+}
+.w-similar .w-card__price.is-sale { color: var(--color-price-sale); }
+
+.w-similar .w-card__rows {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+.w-similar .w-card__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+}
+.w-similar .w-card__row[hidden] { display: none; }
+.w-similar .w-card__row dt { white-space: nowrap; }
+.w-similar .w-card__row dd {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.w-similar .w-card__row-value s { color: var(--color-price-old); }
+.w-similar .w-card__row-pct { margin-left: var(--space-1); color: var(--color-price-sale); }
+.w-similar .w-card__row-pct[hidden] { display: none; }
+
+/* Hover only on devices with a fine pointer */
+@media (hover: hover) and (pointer: fine) {
+  .w-similar .w-card:hover {
+    transform: translateY(var(--card-hover-lift));
+    box-shadow: var(--shadow-card-hover);
+  }
+  .w-similar .w-card:hover .w-card__img { transform: scale(var(--image-hover-scale)); }
+  .w-similar .w-card:hover .w-card__name { text-decoration: underline; text-underline-offset: 3px; }
+}
+
+.w-similar .w-card__link:focus-visible { outline-offset: -2px; }
+
+/* Reduced motion – no lift or zoom */
+@media (prefers-reduced-motion: reduce) {
+  .w-similar .w-card:hover,
+  .w-similar .w-card:hover .w-card__img { transform: none !important; }
+}
