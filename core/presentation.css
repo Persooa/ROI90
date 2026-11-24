@@ -1,0 +1,98 @@
+/* =====================================================================
+   core/presentation.css – ROI presentation layer, shared by all placements
+   Page skeleton (mock background), widget frame and the highlight drawn
+   at an offset around it, with the "Scenariusz ROI · …" label.
+   --roi-* variables only (plus theme --color-bg / --color-border for the frame).
+   ===================================================================== */
+
+:root {
+  --roi-page-bg: #f3f4f6;
+  --roi-skeleton: #e5e7eb;
+  --roi-skeleton-strong: #d1d5db;
+  --roi-skeleton-surface: #ffffff;
+  --roi-gutter: 16px;
+  --roi-max-width: 1240px;
+
+  /* Highlight line + label */
+  --roi-accent: #2348e0;
+  --roi-accent-text: #ffffff;
+  --roi-highlight-width: 2px;
+  --roi-highlight-offset: 6px;     /* gap between the frame edge and the line (mobile) */
+
+  /* Frame (the widget's own box) */
+  --roi-frame-border-width: 1px;
+  --roi-frame-radius: 14px;
+  --roi-frame-shadow: 0 8px 24px -12px rgba(17, 24, 39, 0.18);
+}
+
+@media (min-width: 640px) {
+  :root { --roi-highlight-offset: 10px; }
+}
+
+/* Mock container */
+.roi-page {
+  max-width: var(--roi-max-width);
+  margin: 0 auto;
+  padding: 0 var(--roi-gutter) var(--space-6);
+}
+
+/* Background: page skeleton, fully visible – shows the context of the frame */
+.roi-bg {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Skeleton blocks */
+.sk { background: var(--roi-skeleton); border-radius: 6px; }
+.sk--strong { background: var(--roi-skeleton-strong); }
+.sk--surface { background: var(--roi-skeleton-surface); }
+.sk--pill { border-radius: 999px; }
+.sk--round { border-radius: 50%; }
+
+/* Frame: the widget in its normal look */
+.roi-frame {
+  /* distance from the padding box to the outer edge of the highlight line */
+  --roi-hl-outset: calc(var(--roi-frame-border-width) + var(--roi-highlight-offset) + var(--roi-highlight-width));
+  position: relative;
+  margin: var(--space-6) 0;
+  padding: var(--space-5) var(--space-3);
+  background: var(--color-bg);
+  border: var(--roi-frame-border-width) solid var(--color-border);
+  border-radius: var(--roi-frame-radius);
+  box-shadow: var(--roi-frame-shadow);
+}
+
+/* Highlight: a line around the frame, offset from its edge, concentric radius */
+.roi-frame::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--roi-hl-outset));
+  border: var(--roi-highlight-width) solid var(--roi-accent);
+  border-radius: calc(var(--roi-frame-radius) + var(--roi-highlight-offset) + var(--roi-highlight-width));
+  pointer-events: none;
+}
+
+/* Label sits on the highlight line, top-left corner */
+.roi-frame__label {
+  position: absolute;
+  z-index: 1;
+  top: calc(-1 * var(--roi-hl-outset) + var(--roi-highlight-width) / 2);
+  left: calc(-1 * var(--roi-hl-outset) + var(--space-4));
+  transform: translateY(-50%);
+  max-width: calc(100% - 2 * var(--space-4));
+  padding: 4px 10px;
+  background: var(--roi-accent);
+  color: var(--roi-accent-text);
+  font-family: "Segoe UI", system-ui, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 640px) {
+  .roi-frame { padding: var(--space-6) var(--space-5) var(--space-5); }
+}
