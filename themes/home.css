@@ -30,6 +30,7 @@
   --color-badge-new-text: #ffffff;
   --color-badge-best-bg: #e9c46a;
   --color-badge-best-text: #1f1c19;
+  --color-price-sale: #b3261e;      /* current price when on promotion */
   --color-wish: #b3261e;            /* active heart */
   --color-focus: #8a5a3b;
   --color-dash: #d9d2c7;            /* inactive dash */
@@ -66,6 +67,7 @@
 
   /* Effects */
   --shadow-card-hover: 0 8px 24px rgba(31, 28, 25, 0.10);
+  --arrow-overlay-shadow: 0 2px 8px rgba(31, 28, 25, 0.25);
   --card-hover-lift: -3px;
   --image-hover-scale: 1.04;
   --transition-fast: 160ms ease;

@@ -1,0 +1,36 @@
+<!--
+  Product card template – "Similar products".
+  Filled in widget.js via data-slot attributes.
+  Missing data (badges, lowest price) = element stays hidden.
+-->
+<template id="w-product-card">
+  <article class="w-card">
+    <a class="w-card__link" data-slot="link" href="#">
+      <div class="w-card__media" data-slot="media">
+        <div class="w-card__ribbons" data-slot="badges" hidden></div>
+        <img class="w-card__img" data-slot="image" src="" alt="" loading="lazy" decoding="async" width="400" height="400">
+      </div>
+      <div class="w-card__body">
+        <p class="w-card__category" data-slot="category" hidden></p>
+        <h3 class="w-card__name" data-slot="name"></h3>
+        <p class="w-card__price" data-slot="price"></p>
+        <dl class="w-card__rows">
+          <div class="w-card__row" data-slot="rowSuggested" hidden>
+            <dt data-slot="labelSuggested"></dt>
+            <dd>
+              <span class="w-card__row-value" data-slot="suggested"></span>
+              <span class="w-card__row-pct" data-slot="suggestedPct" hidden></span>
+            </dd>
+          </div>
+          <div class="w-card__row" data-slot="rowLowest" hidden>
+            <dt data-slot="labelLowest"></dt>
+            <dd>
+              <span class="w-card__row-value" data-slot="lowest"></span>
+              <span class="w-card__row-pct" data-slot="lowestPct" hidden></span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </a>
+  </article>
+</template>

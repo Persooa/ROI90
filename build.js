@@ -155,6 +155,10 @@ function normalizeProduct(raw) {
   let image = raw.image || raw.imageUrl || raw.img || '';
   if (image && !isAbsoluteUrl(image)) image = 'img/' + path.basename(image); // relative path
 
+  // Lowest price from the last 30 days (Omnibus) – only when the data has it, never derived
+  const lowest = num(raw.lowestPrice30d ?? raw.lowestPrice);
+  const belowLowest = current != null && lowest != null && current < lowest;
+
   return {
     id: String(raw.id != null ? raw.id : raw.sku || ''),
     name: raw.title || raw.name || '',
@@ -165,11 +169,19 @@ function normalizeProduct(raw) {
     oldPrice: hasDiscount ? old : null,
     discountPct: hasDiscount ? (num(raw.discountPct) != null ? num(raw.discountPct) : Math.round((1 - current / old) * 100)) : null,
     badge: raw.badge || null,
+    badges: [].concat(raw.badges ?? raw.badge ?? []).filter(Boolean).map(String), // string or array
+    category: raw.categoryL2 || raw.categoryL1 || null,
+    lowestPrice: lowest,
+    lowestPct: belowLowest ? Math.round((1 - current / lowest) * 100) : null,
     currency: raw.currency || 'PLN'
   };
 }
 
-function pickProducts(catalog, pick, count) {
+/**
+ * Order: `pick` IDs → (with `anchor`, a raw catalog item) same categoryL1 as the anchor
+ * → rest of the catalog. The anchor product itself is never included.
+ */
+function pickProducts(catalog, { pick, count, anchor }) {
   const byId = new Map(catalog.map((x) => [String(x.id), x]));
   const out = [];
   for (const id of Array.isArray(pick) ? pick : []) {
@@ -177,12 +189,38 @@ function pickProducts(catalog, pick, count) {
     if (found) out.push(found);
     else console.warn(`  ! produkt ${id} nie istnieje w katalogu (product not found)`);
   }
-  // fill up to `count` with further catalog items
-  for (const item of catalog) {
-    if (out.length >= count) break;
-    if (!out.includes(item)) out.push(item);
-  }
-  return out.slice(0, count);
+
+  const add = (item) => {
+    if (out.length < count && item !== anchor && !out.includes(item)) out.push(item);
+  };
+  // similar first
+  if (anchor) catalog.filter((x) => x.categoryL1 === anchor.categoryL1).forEach(add);
+  catalog.forEach(add); // fill up to `count` with further catalog items
+  return out.filter((x) => x !== anchor).slice(0, count);
+}
+
+// "1 299,00 zł" – same format as formatPrice() in the widgets (non-breaking spaces)
+function formatPrice(value, currency = 'PLN') {
+  if (!Number.isFinite(value)) return '';
+  const [int, dec] = value.toFixed(2).split('.');
+  const amount = `${int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')},${dec}`;
+  return `${amount} ${currency === 'PLN' ? 'zł' : currency}`;
+}
+
+/**
+ * Optional mock placeholders for the anchor product (build entry `anchor`).
+ * No anchor → empty values and anchorState "no-anchor" (the mock shows a skeleton).
+ */
+function anchorVars(a) {
+  return {
+    anchorState: a ? 'has-anchor' : 'no-anchor',
+    anchorName: escapeHtml(a ? a.name : ''),
+    anchorCategory: escapeHtml(a ? a.category : ''),
+    anchorImage: escapeHtml(a ? a.image : ''),
+    anchorPrice: escapeHtml(a ? formatPrice(a.price, a.currency) : ''),
+    anchorOldPrice: escapeHtml(a && a.oldPrice != null ? formatPrice(a.oldPrice, a.currency) : ''),
+    anchorDiscount: escapeHtml(a && a.discountPct > 0 ? `−${a.discountPct}%` : '')
+  };
 }
 
 // --- Single build -----------------------------------------------------
@@ -196,7 +234,15 @@ function buildOne(placementCfg, entry) {
   const settings = { ...defaults, ...entry, texts: { ...(defaults.texts || {}), ...(entry.texts || {}) } };
   const count = settings.count || 8;
 
-  const products = pickProducts(loadCatalog(vertical), settings.pick, count).map(normalizeProduct);
+  const catalog = loadCatalog(vertical);
+  let anchor = null; // raw catalog item of the anchor product ("current" product of the page)
+  if (settings.anchor != null) {
+    anchor = catalog.find((x) => String(x.id) === String(settings.anchor)) || null;
+    if (!anchor) console.warn(`  ! produkt bazowy ${settings.anchor} nie istnieje (anchor missing)`);
+  }
+
+  const products = pickProducts(catalog, { pick: settings.pick, count, anchor })
+    .map(normalizeProduct);
   if (!products.length) console.warn(`  ! brak produktów dla ${vertical} (no products)`);
 
   const widgetId = `w-${widget}`;
@@ -212,10 +258,14 @@ function buildOne(placementCfg, entry) {
     labelDots: escapeHtml(texts.dots)
   }, `widgets/${widget}/widget.html`, { ignoreUnused: !!settings.ignoreUnusedVars }); // e.g. bars use no carousel labels
 
-  // 2) Placement mock
-  const mockHtml = fill(read(p('placements', placement, 'mock.html')), {
+  // 2) Placement mock; anchor* values only for placeholders the mock actually uses
+  const mockTpl = read(p('placements', placement, 'mock.html'));
+  const mockAnchor = Object.entries(anchorVars(anchor && normalizeProduct(anchor)))
+    .filter(([key]) => mockTpl.includes(`{{${key}}}`));
+  const mockHtml = fill(mockTpl, {
     frameLabel: escapeHtml(settings.frameLabel || ''),
-    widget: widgetHtml
+    widget: widgetHtml,
+    ...Object.fromEntries(mockAnchor)
   }, `placements/${placement}/mock.html`);
 
   // 3) CSS: theme → core/base → core/presentation → widget
