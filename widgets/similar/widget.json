@@ -1,0 +1,22 @@
+{
+  "type": "similar",
+  "count": 8,
+  "title": "Podobne produkty",
+  "subtitle": "",
+  "step": "card",
+  "autoplay": false,
+  "autoplayMs": 5000,
+  "texts": {
+    "prev": "Poprzednie produkty",
+    "next": "Następne produkty",
+    "dots": "Wybierz produkt",
+    "dot": "Produkt {i} z {n}",
+    "productToast": "Przejście do karty produktu",
+    "badgeNew": "Nowość",
+    "badgeSale": "Wyprzedaż",
+    "badgeBestseller": "Bestseller",
+    "labelSuggested": "Cena sugerowana:",
+    "labelLowest": "Najniższa cena:",
+    "pricePrefix": "Cena:"
+  }
+}
