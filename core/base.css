@@ -1,27 +1,13 @@
 /* =====================================================================
    core/base.css – shared styles
-   1) ROI presentation layer: mock, blur, frame, label – --roi-* variables
-   2) Widget components: heading, carousel, toast – theme variables only,
-      nothing industry-specific
+   Reset, body and widget components (heading, carousel, focus, toast) –
+   theme variables only, nothing industry-specific.
+   ROI presentation layer (mock, frame, highlight) lives in core/presentation.css.
    ===================================================================== */
 
-/* ---------- 1. ROI presentation ---------- */
 :root {
-  --roi-page-bg: #f3f4f6;
-  --roi-skeleton: #e5e7eb;
-  --roi-skeleton-strong: #d1d5db;
-  --roi-skeleton-surface: #ffffff;
-  --roi-frame-color: #2348e0;
-  --roi-frame-label-text: #ffffff;
-  --roi-frame-width: 2px;
-  --roi-frame-radius: 14px;
-  --roi-frame-shadow: 0 24px 60px -12px rgba(17, 24, 39, 0.28), 0 0 0 6px rgba(35, 72, 224, 0.10);
-  --roi-bg-blur: 2.5px;
-  --roi-bg-opacity: 0.55;
   --roi-toast-bg: #111827;
   --roi-toast-text: #ffffff;
-  --roi-gutter: 16px;
-  --roi-max-width: 1240px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -49,64 +35,7 @@ button { font: inherit; color: inherit; }
   white-space: nowrap; border: 0;
 }
 
-/* Mock container */
-.roi-page {
-  max-width: var(--roi-max-width);
-  margin: 0 auto;
-  padding: 0 var(--roi-gutter) var(--space-6);
-}
-
-/* Background: blurred, dimmed page skeleton */
-.roi-bg {
-  filter: blur(var(--roi-bg-blur));
-  opacity: var(--roi-bg-opacity);
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Skeleton blocks */
-.sk { background: var(--roi-skeleton); border-radius: 6px; }
-.sk--strong { background: var(--roi-skeleton-strong); }
-.sk--surface { background: var(--roi-skeleton-surface); }
-.sk--pill { border-radius: 999px; }
-.sk--round { border-radius: 50%; }
-
-/* ROI frame highlighting the widget */
-.roi-frame {
-  position: relative;
-  z-index: 2;
-  margin: var(--space-6) 0;
-  padding: var(--space-5) var(--space-3);
-  background: var(--color-bg);
-  border: var(--roi-frame-width) solid var(--roi-frame-color);
-  border-radius: var(--roi-frame-radius);
-  box-shadow: var(--roi-frame-shadow);
-}
-
-.roi-frame__label {
-  position: absolute;
-  top: 0;
-  left: var(--space-4);
-  transform: translateY(-50%);
-  max-width: calc(100% - 2 * var(--space-4));
-  padding: 4px 10px;
-  background: var(--roi-frame-color);
-  color: var(--roi-frame-label-text);
-  font-family: "Segoe UI", system-ui, Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.3;
-  border-radius: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (min-width: 640px) {
-  .roi-frame { padding: var(--space-6) var(--space-5) var(--space-5); }
-}
-
-/* ---------- 2. Widget heading ---------- */
+/* ---------- 1. Widget heading ---------- */
 .w-widget {
   color: var(--color-text);
   font-family: var(--font-body);
@@ -138,7 +67,7 @@ button { font: inherit; color: inherit; }
   text-align: center;
 }
 
-/* ---------- 3. Carousel ---------- */
+/* ---------- 2. Carousel ---------- */
 .w-carousel {
   --per-view: var(--cards-mobile);
   position: relative;
@@ -235,7 +164,7 @@ button { font: inherit; color: inherit; }
   .w-carousel { --per-view: var(--cards-wide); }
 }
 
-/* ---------- 4. Visible focus ---------- */
+/* ---------- 3. Visible focus ---------- */
 .w-widget :focus { outline: none; }
 .w-widget :focus-visible,
 .w-carousel__viewport:focus-visible {
@@ -243,7 +172,7 @@ button { font: inherit; color: inherit; }
   outline-offset: 2px;
 }
 
-/* ---------- 5. Toast ---------- */
+/* ---------- 4. Toast ---------- */
 .roi-toast {
   position: fixed;
   left: 50%;
@@ -264,7 +193,7 @@ button { font: inherit; color: inherit; }
 }
 .roi-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------- 6. Reduced motion ---------- */
+/* ---------- 5. Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
