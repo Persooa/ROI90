@@ -51,7 +51,7 @@ function scriptJson(value) {
 /**
  * Single-pass {{key}} replacement – inserted content is not re-scanned.
  */
-function fill(template, vars, where) {
+function fill(template, vars, where, opts = {}) {
   // A placeholder inside an HTML comment would break the page
   for (const c of template.match(/<!--[\s\S]*?-->/g) || []) {
     if (/\{\{\w+\}\}/.test(c)) throw new Error(`placeholder {{…}} w komentarzu HTML w ${where} (placeholder inside HTML comment)`);
@@ -65,7 +65,7 @@ function fill(template, vars, where) {
   });
   // A value with no placeholder usually means the template was broken (e.g. by a formatter)
   for (const key of Object.keys(vars)) {
-    if (!used.has(key)) console.warn(`  ! brak placeholdera {{${key}}} w ${where} – wartość nie została wstawiona (placeholder missing)`);
+    if (!used.has(key) && !opts.ignoreUnused) console.warn(`  ! brak placeholdera {{${key}}} w ${where} – wartość nie została wstawiona (placeholder missing)`);
   }
   return result;
 }
@@ -83,27 +83,41 @@ function copyDir(src, dest) {
   return count;
 }
 
-// --- Index page -------------------------------------------------------
-// Files from core/ that the index page needs; copied next to dist/index.html
-const INDEX_ASSETS = ['index.css', 'logo.svg'];
+// --- Index + preview pages ----------------------------------------------
+// Files from core/ copied next to dist/index.html (styles, logo, preview script)
+const SITE_ASSETS = ['index.css', 'logo.svg', 'preview.css', 'preview.js'];
 
-// Renders core/index.html into dist/index.html: only the list is injected, all markup and styling live in core/
-function renderIndex(results) {
-  const tplFile = p('core', 'index.html');
-  if (!fs.existsSync(tplFile)) throw new Error('brak szablonu core/index.html (template missing)');
+// Injects `value` into the {{ key }} placeholder of core/<name> and writes the result to dist/<name>.
+// Only data is injected; all markup, styling and behaviour live in core/.
+function renderTemplate(name, key, value) {
+  const tplFile = p('core', name);
+  if (!fs.existsSync(tplFile)) throw new Error(`brak szablonu core/${name} (template missing)`);
   const tpl = read(tplFile);
 
-  const placeholder = /\{\{\s*list\s*\}\}/;
-  if (!placeholder.test(tpl)) throw new Error('core/index.html nie zawiera znacznika {{ list }} (placeholder missing)');
+  const placeholder = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`);
+  if (!placeholder.test(tpl)) throw new Error(`core/${name} nie zawiera znacznika {{ ${key} }} (placeholder missing)`);
 
+  // Replacer function, so "$" characters in the value are never treated as patterns
+  fs.writeFileSync(path.join(DIST, name), tpl.replace(placeholder, () => value));
+}
+
+// dist/index.html: list of links to all built pages
+function renderIndex(results) {
   const list = results
     .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`)
     .join('\n      ');
+  renderTemplate('index.html', 'list', list);
+}
 
-  // Replacer function, so "$" characters in the list are never treated as patterns
-  fs.writeFileSync(path.join(DIST, 'index.html'), tpl.replace(placeholder, () => list));
+// dist/preview.html: opens index.html first and follows links from there;
+// it gets the page list as JSON (titles, and the theme switcher moves between verticals)
+function renderPreview(results) {
+  const pages = results.map((r) => ({ file: r.file, title: r.title, vertical: r.vertical, placement: r.placement, widget: r.widget }));
+  renderTemplate('preview.html', 'pagesJson', scriptJson(pages));
+}
 
-  for (const name of INDEX_ASSETS) {
+function copySiteAssets() {
+  for (const name of SITE_ASSETS) {
     const src = p('core', name);
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(DIST, name));
     else console.warn(`- core/${name}: brak pliku, pomijam (missing, skipped)`);
@@ -196,7 +210,7 @@ function buildOne(placementCfg, entry) {
     labelPrev: escapeHtml(texts.prev),
     labelNext: escapeHtml(texts.next),
     labelDots: escapeHtml(texts.dots)
-  }, `widgets/${widget}/widget.html`);
+  }, `widgets/${widget}/widget.html`, { ignoreUnused: !!settings.ignoreUnusedVars }); // e.g. bars use no carousel labels
 
   // 2) Placement mock
   const mockHtml = fill(read(p('placements', placement, 'mock.html')), {
@@ -214,6 +228,7 @@ function buildOne(placementCfg, entry) {
   // 4) JS: core → widget
   const js = [
     '/* core/tracker.js */', read(p('core', 'tracker.js')),
+    '/* core/preview-bridge.js */', readOptional(p('core', 'preview-bridge.js')), // forwards events to preview.html when framed
     '/* core/carousel.js */', read(p('core', 'carousel.js')),
     '/* core/popup.js */', read(p('core', 'popup.js')),
     `/* widgets/${widget}/widget.js */`, read(path.join(widgetDir, 'widget.js'))
@@ -304,6 +319,13 @@ function build() {
     console.error(`✗ index.html: ${e.message}`);
     process.exitCode = 1;
   }
+  try {
+    renderPreview(results);
+  } catch (e) {
+    console.error(`✗ preview.html: ${e.message}`);
+    process.exitCode = 1;
+  }
+  copySiteAssets();
   fs.writeFileSync(path.join(DIST, '.nojekyll'), '');
 
   console.log(`Gotowe w ${Date.now() - t0} ms → dist/ (Done)`);
@@ -331,6 +353,7 @@ function serve() {
     });
   }).listen(PORT, () => {
     console.log(`\nSerwer (server): http://localhost:${PORT}/`);
+    console.log(`Preview: http://localhost:${PORT}/preview.html`);
     console.log(`Widget: http://localhost:${PORT}/home/home-page__last-seen.html?lead=test`);
   });
 }

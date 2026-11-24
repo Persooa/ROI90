@@ -1,0 +1,42 @@
+/* Styles for dist/preview.html */
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #1f2328; color: #e6e6e6; height: 100vh; display: flex; flex-direction: column; }
+
+/* ---- Toolbar ---- */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; padding: 10px 16px; background: #2b3036; }
+.group { display: flex; align-items: center; gap: 6px; }
+.group > span, .group > label { opacity: .6; margin-right: 4px; }
+button, select { font: inherit; color: inherit; background: #3a4048; border: 1px solid transparent; border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+button:hover:not(:disabled), select:hover:not(:disabled) { background: #454c55; }
+button:focus-visible, select:focus-visible { outline: 2px solid #4f7cff; outline-offset: 1px; }
+button[aria-pressed="true"] { background: #e6e6e6; color: #1f2328; font-weight: 600; }
+button:disabled, select:disabled { opacity: .4; cursor: default; }
+.btn-icon { display: inline-flex; align-items: center; gap: 6px; }
+.btn-icon svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#back, #forward { padding: 5px 9px; }
+select { padding-right: 8px; }
+select option { background: #2b3036; color: #e6e6e6; }
+select option:disabled { color: #7a828c; }
+
+/* Which file is open */
+.file { flex: 1 1 240px; min-width: 0; display: flex; align-items: baseline; gap: 10px; overflow: hidden; }
+.file code { min-width: 0; padding: 3px 8px; font: 12px ui-monospace, Menlo, Consolas, monospace; background: #1f2328; border: 1px solid #3a4048;
+  border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file span { opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Stage: the iframe plus a floating events window ---- */
+.stage { position: relative; flex: 1; min-height: 0; padding: 16px; }
+.view { height: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: auto; }
+iframe { border: 0; background: #fff; height: 100%; width: 100%; border-radius: 6px; }
+.view.tablet iframe { width: 768px; max-width: 100%; max-height: 1024px; border: 8px solid #000; border-radius: 18px; }
+.view.mobile iframe { width: 390px; max-width: 100%; max-height: 800px; border: 8px solid #000; border-radius: 22px; }
+
+/* Fixed position inside the stage: the device size does not move it; it may cover the iframe */
+.log { position: absolute; top: 24px; right: 24px; z-index: 10; width: 300px; max-width: calc(100% - 48px); max-height: calc(100% - 48px);
+  overflow: auto; padding: 10px; background: rgba(31, 35, 40, .94); border: 1px solid #3a4048; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45); font: 12px/1.5 ui-monospace, Menlo, monospace; }
+.log[hidden] { display: none; }
+.log h3 { margin: 0 0 8px; font: 600 12px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .6; }
+.log div { padding: 3px 0; border-bottom: 1px solid #3a4048; word-break: break-all; }
+.log b { color: #7ee787; }
+.log i { color: #8b949e; font-style: normal; }
