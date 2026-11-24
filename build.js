@@ -204,10 +204,11 @@ function buildOne(placementCfg, entry) {
     widget: widgetHtml
   }, `placements/${placement}/mock.html`);
 
-  // 3) CSS: theme → core → widget
+  // 3) CSS: theme → core/base → core/presentation → widget
   const css = [
     `/* themes/${vertical}.css */`, read(p('themes', `${vertical}.css`)),
     '/* core/base.css */', read(p('core', 'base.css')),
+    '/* core/presentation.css */', read(p('core', 'presentation.css')),
     `/* widgets/${widget}/widget.css */`, readOptional(path.join(widgetDir, 'widget.css'))
   ].join('\n');
 
