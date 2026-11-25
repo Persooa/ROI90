@@ -1,0 +1,21 @@
+{
+  "placement": "basket",
+  "label": "Koszyk",
+  "builds": [
+    {
+      "vertical": "home",
+      "widget": "cart-reco",
+      "frameLabel": "Scenariusz ROI · Rekomendacje w koszyku",
+      "pageTitle": "Uzupełnij zamówienie – koszyk | Demo ROI",
+      "pageDescription": "Demo ramki rekomendacyjnej „Uzupełnij zamówienie” w koszyku – wersja desktop i mobile.",
+      "cartItems": ["NH10001", "NH10095"],
+      "shippingCost": 149,
+      "freeShippingThreshold": 5000,
+      "maxQty": 10,
+      "campaignId": "demo-cart-reco",
+      "pick": ["NH10867", "NH10873", "NH10633", "NH10591", "NH10233", "NH10758", "NH10834", "NH10812"],
+      "autoplay": false,
+      "step": "card"
+    }
+  ]
+}

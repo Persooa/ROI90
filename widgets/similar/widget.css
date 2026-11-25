@@ -159,19 +159,19 @@
   font-size: var(--font-size-sm);
   line-height: 1.4;
 }
+/* Label + value on one line; on narrow cards the value (with %) wraps under it, never cut off */
 .w-similar .w-card__row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: var(--space-2);
 }
 .w-similar .w-card__row[hidden] { display: none; }
 .w-similar .w-card__row dt { white-space: nowrap; }
 .w-similar .w-card__row dd {
-  margin: 0;
+  margin: 0 0 0 auto;
   text-align: right;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .w-similar .w-card__row-value s { color: var(--color-price-old); }
 .w-similar .w-card__row-pct { margin-left: var(--space-1); color: var(--color-price-sale); }

@@ -34,6 +34,13 @@
   --color-wish: #b3261e;            /* active heart */
   --color-focus: #8a5a3b;
   --color-dash: #d9d2c7;            /* inactive dash */
+  --color-cta-bg: #1f1c19;          /* "Dodaj do koszyka", "Przejdź do dostawy" */
+  --color-cta-text: #ffffff;
+  --color-cta-hover-bg: #8a5a3b;
+  --color-success: #2f4a3a;         /* "Dodano ✓", free shipping reached */
+  --color-success-contrast: #ffffff;
+  --color-progress-track: #ece6dd;  /* free-shipping bar */
+  --color-progress-fill: #8a5a3b;
 
   /* Shapes */
   --radius-widget: 0px;
@@ -41,6 +48,7 @@
   --radius-image: 4px;
   --radius-badge: 2px;
   --radius-button: 999px;
+  --radius-cta: 4px;                /* text buttons (add to cart, checkout) */
 
   /* Spacing */
   --space-1: 4px;
@@ -64,6 +72,7 @@
   --dash-width: 24px;
   --dash-width-active: 32px;
   --dash-height: 2px;
+  --progress-height: 6px;
 
   /* Effects */
   --shadow-card-hover: 0 8px 24px rgba(31, 28, 25, 0.10);
