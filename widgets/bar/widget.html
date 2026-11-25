@@ -1,0 +1,60 @@
+<div class="rk-cb" id="{{widgetId}}" data-rk-bar="combo" data-demo="on"
+     data-timer="on" data-code="on" data-newsletter="on"
+     data-text="Tylko dziś: -25% na cały asortyment" data-code-value="SALE25" data-newsletter-code="WELCOME10"
+     data-duration="7200">
+  <div class="rk-cb__frame" role="region" aria-label="{{title}}">
+    <!-- text, code and the sign-up button are visible without JS; widget.js only switches them on / off -->
+    <p class="rk-cb__text" data-rk-text>Tylko dziś: -25% na cały asortyment</p>
+
+    <div class="rk-cb__timer" role="timer" aria-label="Czas do końca promocji" data-rk-timer hidden>
+      <span class="rk-cb__timer-label">Koniec za</span>
+      <div class="rk-cb__seg" data-seg="d"><b>00</b><small>dni</small></div>
+      <span class="rk-cb__sep" data-sep="d">:</span>
+      <div class="rk-cb__seg" data-seg="h"><b>00</b><small>godz</small></div>
+      <span class="rk-cb__sep">:</span>
+      <div class="rk-cb__seg" data-seg="m"><b>00</b><small>min</small></div>
+      <span class="rk-cb__sep">:</span>
+      <div class="rk-cb__seg" data-seg="s"><b>00</b><small>sek</small></div>
+    </div>
+
+    <div class="rk-cb__code" data-rk-code>
+      <span class="rk-cb__code-value" data-rk-code-value>SALE25</span>
+      <button class="rk-cb__btn" type="button" data-rk-copy>Kopiuj kod</button>
+    </div>
+
+    <button class="rk-cb__btn" type="button" data-rk-open>Zapisz się</button>
+
+    <button class="rk-cb__close" type="button" aria-label="Zamknij belkę" data-rk-close>&times;</button>
+    <span class="rk-cb__status" role="status" aria-live="polite"></span>
+  </div>
+  <!-- the "Demo" options strip is added here by widget.js when data-demo="on" -->
+</div>
+
+<div class="w-popup" data-rk-popup="combo" hidden>
+  <div class="rk-modal__dialog" data-popup-dialog aria-labelledby="rk-cb-title">
+    <button class="rk-modal__close" type="button" aria-label="Zamknij" data-popup-close>&times;</button>
+
+    <div data-view="form">
+      <span class="rk-modal__badge">-10%</span>
+      <h2 class="rk-modal__title" id="rk-cb-title">Dołącz do newslettera</h2>
+      <p class="rk-modal__lead">Zapisz się i odbierz rabat na pierwsze zakupy oraz dostęp do ofert przed wszystkimi.</p>
+      <form novalidate>
+        <input class="rk-modal__input" type="email" name="email" placeholder="Twój adres e-mail" autocomplete="email" aria-label="Adres e-mail">
+        <label class="rk-modal__consent">
+          <input type="checkbox" name="consent">
+          <span>Wyrażam zgodę na otrzymywanie newslettera i akceptuję regulamin.</span>
+        </label>
+        <p class="rk-modal__error" role="alert"></p>
+        <button class="rk-modal__submit" type="submit">Zapisz się i odbierz kod</button>
+      </form>
+    </div>
+
+    <div data-view="done" hidden>
+      <span class="rk-modal__badge">Gotowe</span>
+      <h2 class="rk-modal__title">Dziękujemy za zapis!</h2>
+      <p class="rk-modal__lead">Twój kod rabatowy:</p>
+      <div class="rk-modal__code" data-rk-newsletter-code></div>
+      <p class="rk-modal__small">Wysłaliśmy go także na <span data-sent-to></span>.</p>
+    </div>
+  </div>
+</div>
