@@ -1,6 +1,6 @@
 {
   "placement": "all-pages",
-  "label": "Strona główna",
+  "label": "Wszystkie strony",
   "builds": [
     {
       "vertical": "home",
