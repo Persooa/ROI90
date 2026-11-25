@@ -87,6 +87,14 @@ function copyDir(src, dest) {
 // Files from core/ copied next to dist/index.html (styles, logo, preview script)
 const SITE_ASSETS = ['index.css', 'logo.svg', 'preview.css', 'preview.js'];
 
+// Readable vertical names for the index page; unknown verticals fall back to their slug
+const VERTICAL_LABELS = { home: 'Home', fashion: 'Fashion', beauty: 'Beauty', electronics: 'Elektronika' };
+
+// "Home · Karta produktu": vertical name + placement label (config.json "label", else its slug)
+function describeBuild(r) {
+  return `${VERTICAL_LABELS[r.vertical] || r.vertical} · ${r.placementLabel || r.placement}`;
+}
+
 // Injects `value` into the {{ key }} placeholder of core/<name> and writes the result to dist/<name>.
 // Only data is injected; all markup, styling and behaviour live in core/.
 function renderTemplate(name, key, value) {
@@ -104,7 +112,7 @@ function renderTemplate(name, key, value) {
 // dist/index.html: list of links to all built pages
 function renderIndex(results) {
   const list = results
-    .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`)
+    .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(describeBuild(r))}</small></li>`)
     .join('\n      ');
   renderTemplate('index.html', 'list', list);
 }
@@ -321,7 +329,7 @@ function buildOne(placementCfg, entry) {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, outName), html);
 
-  return { vertical, placement, widget, file: `${vertical}/${outName}`, title: settings.pageTitle || settings.title, products: products.length, kb: Math.round(Buffer.byteLength(html) / 1024) };
+  return { vertical, placement, placementLabel: placementCfg.label, widget, file: `${vertical}/${outName}`, title: settings.pageTitle || settings.title, products: products.length, kb: Math.round(Buffer.byteLength(html) / 1024) };
 }
 
 // --- Full build -------------------------------------------------------
