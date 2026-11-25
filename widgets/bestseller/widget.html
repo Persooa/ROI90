@@ -1,0 +1,27 @@
+<!-- Widget: Bestsellers – category tabs + carousel of the active tab -->
+<section class="w-widget w-bestseller" id="{{widgetId}}" aria-labelledby="{{widgetId}}-title" data-widget="bestseller">
+  <h2 class="w-title" id="{{widgetId}}-title">{{title}}</h2>
+  {{subtitleHtml}}
+  <!-- Tabs: "Wszystkie" + texts.tabs from widget.json, rendered by widget.js -->
+  <div class="w-tabs" role="tablist" data-tabs></div>
+  <div class="w-panels" data-panels></div>
+  <!-- Panel of the active tab; widget.js clones a fresh one (+ new Carousel) on every tab change -->
+  <template data-panel-template>
+    <div class="w-panel" role="tabpanel">
+      <div class="w-carousel" data-carousel>
+        <!-- DOM order = Tab order: prev → cards → next -->
+        <button class="w-carousel__arrow w-carousel__arrow--prev" type="button" data-carousel-prev aria-label="{{labelPrev}}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="w-carousel__viewport" data-carousel-viewport tabindex="0" role="region" aria-roledescription="karuzela" aria-label="{{title}}">
+          <!-- cards rendered by widget.js -->
+        </div>
+        <button class="w-carousel__arrow w-carousel__arrow--next" type="button" data-carousel-next aria-label="{{labelNext}}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <!-- Dashes: mobile only (hidden on desktop in widget.css) -->
+      <ol class="w-dots" data-carousel-dots aria-label="{{labelDots}}"></ol>
+    </div>
+  </template>
+</section>
