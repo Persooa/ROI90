@@ -87,6 +87,14 @@ function copyDir(src, dest) {
 // Files from core/ that the index page needs; copied next to dist/index.html
 const INDEX_ASSETS = ['index.css', 'logo.svg'];
 
+// Readable vertical names for the index page; unknown verticals fall back to their slug
+const VERTICAL_LABELS = { home: 'Home', fashion: 'Fashion', beauty: 'Beauty', electronics: 'Elektronika' };
+
+// "Home · Karta produktu": vertical name + placement label (config.json "label", else its slug)
+function describeBuild(r) {
+  return `${VERTICAL_LABELS[r.vertical] || r.vertical} · ${r.placementLabel || r.placement}`;
+}
+
 // Renders core/index.html into dist/index.html: only the list is injected, all markup and styling live in core/
 function renderIndex(results) {
   const tplFile = p('core', 'index.html');
@@ -97,7 +105,7 @@ function renderIndex(results) {
   if (!placeholder.test(tpl)) throw new Error('core/index.html nie zawiera znacznika {{ list }} (placeholder missing)');
 
   const list = results
-    .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(r.file)}</small></li>`)
+    .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(describeBuild(r))}</small></li>`)
     .join('\n      ');
 
   // Replacer function, so "$" characters in the list are never treated as patterns
@@ -306,7 +314,7 @@ function buildOne(placementCfg, entry) {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, outName), html);
 
-  return { vertical, placement, widget, file: `${vertical}/${outName}`, title: settings.pageTitle || settings.title, products: products.length, kb: Math.round(Buffer.byteLength(html) / 1024) };
+  return { vertical, placement, placementLabel: placementCfg.label, widget, file: `${vertical}/${outName}`, title: settings.pageTitle || settings.title, products: products.length, kb: Math.round(Buffer.byteLength(html) / 1024) };
 }
 
 // --- Full build -------------------------------------------------------
