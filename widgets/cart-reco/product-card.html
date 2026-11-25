@@ -1,0 +1,55 @@
+<!--
+  Product card template – "Uzupełnij zamówienie" (cart recommendations).
+  Based on the similar card + an add-to-cart button outside the link (no nested interactive).
+  Filled in widget.js via data-slot attributes.
+  Missing data (badges, lowest price) = element stays hidden.
+-->
+<template id="w-product-card">
+  <article class="w-card">
+    <a class="w-card__link" data-slot="link" href="#">
+      <div class="w-card__media" data-slot="media">
+        <div class="w-card__ribbons" data-slot="badges" hidden></div>
+        <img class="w-card__img" data-slot="image" src="" alt="" loading="lazy" decoding="async" width="400" height="400">
+      </div>
+      <div class="w-card__body">
+        <p class="w-card__category" data-slot="category" hidden></p>
+        <h3 class="w-card__name" data-slot="name"></h3>
+        <p class="w-card__price" data-slot="price"></p>
+        <dl class="w-card__rows">
+          <div class="w-card__row" data-slot="rowSuggested" hidden>
+            <dt data-slot="labelSuggested"></dt>
+            <dd>
+              <span class="w-card__row-value" data-slot="suggested"></span>
+              <span class="w-card__row-pct" data-slot="suggestedPct" hidden></span>
+            </dd>
+          </div>
+          <div class="w-card__row" data-slot="rowLowest" hidden>
+            <dt data-slot="labelLowest"></dt>
+            <dd>
+              <span class="w-card__row-value" data-slot="lowest"></span>
+              <span class="w-card__row-pct" data-slot="lowestPct" hidden></span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </a>
+    <!-- Basket controls: "Dodaj do koszyka" (qty 0, then "Dodano ✓" for 1.5 s) or the stepper -->
+    <div class="w-card__cart" data-slot="cartBox">
+      <button class="w-card__add" type="button" data-slot="cartAdd">
+        <svg class="w-card__add-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/><path d="M13 9.5v4M11 11.5h4"/></svg>
+        <svg class="w-card__add-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        <span class="w-card__add-text" data-slot="cartAddText"></span>
+      </button>
+      <div class="w-card__stepper" role="group" data-slot="stepper" hidden>
+        <button class="w-card__step" type="button" data-slot="dec">
+          <svg class="w-card__step-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg>
+          <svg class="w-card__step-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>
+        </button>
+        <span class="w-card__step-qty" data-slot="qty"></span>
+        <button class="w-card__step" type="button" data-slot="inc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+  </article>
+</template>

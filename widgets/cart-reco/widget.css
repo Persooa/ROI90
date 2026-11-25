@@ -1,0 +1,323 @@
+/* =====================================================================
+   widgets/cart-reco/widget.css – heading, overlay arrows, product card, add-to-cart + stepper
+   Card styles copied from widgets/similar (no shared card mechanism).
+   Theme variables only. Scoped to .w-cart-reco (overrides of core/base.css).
+   ===================================================================== */
+
+/* ---------- Heading: left-aligned, bold, no dash ---------- */
+.w-cart-reco .w-title {
+  margin-bottom: var(--space-4);
+  font-weight: 700;
+  text-align: left;
+}
+.w-cart-reco .w-title::after { display: none; }
+.w-cart-reco .w-subtitle { margin-top: calc(-1 * var(--space-2)); text-align: left; }
+
+/* ---------- Arrows: round buttons overlaid on the carousel edges ---------- */
+.w-cart-reco .w-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: 0;
+  box-shadow: var(--arrow-overlay-shadow);
+  transform: translateY(-50%);
+  transition: transform var(--transition-fast);
+}
+.w-cart-reco .w-carousel__arrow svg { width: 20px; height: 20px; }
+.w-cart-reco .w-carousel__arrow--prev { left: calc(var(--arrow-size) / -2); }
+.w-cart-reco .w-carousel__arrow--next { right: calc(var(--arrow-size) / -2); }
+.w-cart-reco .w-carousel__arrow:hover {
+  color: var(--color-accent-contrast);
+  transform: translateY(-50%) scale(1.08);
+}
+
+@media (min-width: 640px) {
+  /* arrows are absolutely positioned, so the viewport takes the full width */
+  .w-cart-reco .w-carousel { grid-template-columns: minmax(0, 1fr); }
+  .w-cart-reco .w-dots { display: none; }
+}
+
+/* ---------- Card ---------- */
+.w-cart-reco .w-card {
+  position: relative;
+  height: 100%;
+  text-align: left;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.w-cart-reco .w-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.w-cart-reco .w-card__media {
+  position: relative;
+  aspect-ratio: var(--image-ratio);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.w-cart-reco .w-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 300ms ease;
+}
+.w-cart-reco .w-card__media.is-broken .w-card__img { visibility: hidden; }
+
+/* Ribbons: top-left, stacked, slanted right edge */
+.w-cart-reco .w-card__ribbons {
+  position: absolute;
+  top: var(--space-2);
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.w-cart-reco .w-card__ribbons[hidden] { display: none; }
+.w-cart-reco .w-card__ribbon {
+  padding: 2px calc(var(--space-2) + 8px) 2px var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+.w-cart-reco .w-card__ribbon--new {
+  background: var(--color-badge-new-bg);
+  color: var(--color-badge-new-text);
+}
+.w-cart-reco .w-card__ribbon--sale {
+  background: var(--color-badge-sale-bg);
+  color: var(--color-badge-sale-text);
+}
+.w-cart-reco .w-card__ribbon--bestseller {
+  background: var(--color-badge-best-bg);
+  color: var(--color-badge-best-text);
+}
+
+/* Body */
+.w-cart-reco .w-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2) var(--space-2);
+}
+
+.w-cart-reco .w-card__category {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.w-cart-reco .w-card__category[hidden] { display: none; }
+
+/* Name: bold, max 2 lines */
+.w-cart-reco .w-card__name {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  line-height: var(--line-height-base);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: calc(2em * var(--line-height-base));
+}
+
+/* Price block pinned to the bottom, so prices line up across cards */
+.w-cart-reco .w-card__price {
+  margin: auto 0 0;
+  padding-top: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--font-size-price);
+  font-weight: var(--font-weight-price);
+  white-space: nowrap;
+}
+.w-cart-reco .w-card__price.is-sale { color: var(--color-price-sale); }
+
+.w-cart-reco .w-card__rows {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+/* Label + value on one line; on narrow cards the value (with %) wraps under it, never cut off */
+.w-cart-reco .w-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: var(--space-2);
+}
+.w-cart-reco .w-card__row[hidden] { display: none; }
+.w-cart-reco .w-card__row dt { white-space: nowrap; }
+.w-cart-reco .w-card__row dd {
+  margin: 0 0 0 auto;
+  text-align: right;
+  white-space: nowrap;
+}
+.w-cart-reco .w-card__row-value s { color: var(--color-price-old); }
+.w-cart-reco .w-card__row-pct { margin-left: var(--space-1); color: var(--color-price-sale); }
+.w-cart-reco .w-card__row-pct[hidden] { display: none; }
+
+/* Hover only on devices with a fine pointer */
+@media (hover: hover) and (pointer: fine) {
+  .w-cart-reco .w-card:hover {
+    transform: translateY(var(--card-hover-lift));
+    box-shadow: var(--shadow-card-hover);
+  }
+  .w-cart-reco .w-card:hover .w-card__img { transform: scale(var(--image-hover-scale)); }
+  .w-cart-reco .w-card:hover .w-card__name { text-decoration: underline; text-underline-offset: 3px; }
+}
+
+.w-cart-reco .w-card__link:focus-visible { outline-offset: -2px; }
+
+/* Reduced motion – no lift or zoom */
+@media (prefers-reduced-motion: reduce) {
+  .w-cart-reco .w-card:hover,
+  .w-cart-reco .w-card:hover .w-card__img { transform: none !important; }
+}
+
+/* ---------- Cart-reco: basket controls below the link ---------- */
+.w-cart-reco .w-card { display: flex; flex-direction: column; }
+.w-cart-reco .w-card__link { flex: 1; height: auto; }
+
+/* Desktop: 4 cards also on wide screens – the frame sits next to the basket summary */
+@media (min-width: 1280px) {
+  .w-cart-reco .w-carousel { --per-view: var(--cards-desktop); }
+}
+
+/* Box under the price: right-aligned on mobile, full width from 640px */
+.w-cart-reco .w-card__cart {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 var(--space-2) var(--space-2);
+}
+.w-cart-reco .w-card__cart [hidden] { display: none; }
+
+/* "Dodaj do koszyka" – mobile: round icon button (cart with plus) */
+.w-cart-reco .w-card__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: var(--arrow-size);
+  height: var(--arrow-size);
+  padding: 0;
+  background: var(--color-cta-bg);
+  color: var(--color-cta-text);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.w-cart-reco .w-card__add svg { width: 20px; height: 20px; flex: none; }
+.w-cart-reco .w-card__add-check { display: none; }
+.w-cart-reco .w-card__add-text {
+  /* visually hidden on mobile – the aria-label names the button */
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* "Dodano ✓" for 1.5 s after adding */
+.w-cart-reco .w-card__add.is-added {
+  background: var(--color-success);
+  color: var(--color-success-contrast);
+  cursor: default;
+}
+.w-cart-reco .w-card__add.is-added .w-card__add-icon { display: none; }
+.w-cart-reco .w-card__add.is-added .w-card__add-check { display: block; }
+
+/* Stepper [ − 2 + ] – mobile: compact pill */
+.w-cart-reco .w-card__stepper {
+  display: inline-flex;
+  align-items: center;
+  height: var(--arrow-size);
+  color: var(--color-text);
+  border: 1px solid var(--color-cta-bg);
+  border-radius: var(--radius-button);
+}
+.w-cart-reco .w-card__step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 100%;
+  padding: 0;
+  background: none;
+  color: var(--color-text);
+  border: 0;
+  border-radius: inherit;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.w-cart-reco .w-card__step svg { width: 16px; height: 16px; }
+.w-cart-reco .w-card__step:disabled { color: var(--color-border); cursor: not-allowed; }
+.w-cart-reco .w-card__step-qty {
+  min-width: 20px;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  text-align: center;
+}
+/* qty 1: "−" becomes a trash icon (removes from the basket) */
+.w-cart-reco .w-card__step-trash { display: none; }
+.w-cart-reco .w-card__stepper.is-single .w-card__step-minus { display: none; }
+.w-cart-reco .w-card__stepper.is-single .w-card__step-trash { display: block; }
+
+@media (hover: hover) and (pointer: fine) {
+  .w-cart-reco .w-card__add:not(.is-added):hover { background: var(--color-cta-hover-bg); }
+  .w-cart-reco .w-card__step:not(:disabled):hover { background: var(--color-surface); }
+  .w-cart-reco .w-card__stepper.is-single [data-slot="dec"]:hover { color: var(--color-price-sale); }
+}
+
+/* From 640px: full-width text button / stepper at the bottom of the card */
+@media (min-width: 640px) {
+  .w-cart-reco .w-card__cart { display: block; }
+  .w-cart-reco .w-card__add,
+  .w-cart-reco .w-card__stepper {
+    display: flex;
+    width: 100%;
+    min-height: var(--arrow-size);
+    border-radius: var(--radius-cta);
+  }
+  .w-cart-reco .w-card__add { height: auto; padding: 0 var(--space-3); }
+  .w-cart-reco .w-card__add-text { position: static; width: auto; height: auto; clip: auto; }
+  /* the text already says "Dodano ✓" */
+  .w-cart-reco .w-card__add.is-added .w-card__add-check { display: none; }
+  .w-cart-reco .w-card__stepper { justify-content: space-between; }
+  .w-cart-reco .w-card__step { width: 44px; }
+}
+
+/* Narrow cards (e.g. 4 per view next to the summary at 1024–1279px): no icon, smaller text */
+.w-cart-reco .w-card { container-type: inline-size; }
+@media (min-width: 640px) {
+  @container (max-width: 190px) {
+    .w-cart-reco .w-card__add-icon { display: none; }
+    .w-cart-reco .w-card__add { padding: 0 var(--space-2); font-size: var(--font-size-sm); }
+    .w-cart-reco .w-card__step { width: 36px; }
+  }
+}

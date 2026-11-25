@@ -1,0 +1,442 @@
+<!-- =====================================================================
+     Mock: shop basket (generic – used by any basket widget)
+     Grey skeleton .roi-bg = page context; ROI frame + highlight from core/presentation.css.
+     The basket (build entry "cartItems") is shown for real: rows, summary, free-shipping bar.
+     Without cartItems the mock shows the empty basket (class is-empty), frame under the message.
+     Slots in double braces: frameLabel, widget, cartState, cartCount (initial state)
+     The script at the end renders rows + summary from the shared basket state (ROI.cart,
+     core/cart.js) and re-renders on every change – from its own steppers or from widgets.
+     Demo only: nothing is saved.
+     ===================================================================== -->
+<style>
+  /* Skeleton: --roi-* variables only. The real basket uses theme variables (shop look). */
+  .mk-top { background: var(--roi-skeleton-surface); border-bottom: 1px solid var(--roi-skeleton); }
+  .mk-top__in { max-width: var(--roi-max-width); margin: 0 auto; padding: 14px var(--roi-gutter); display: flex; align-items: center; gap: 24px; }
+  .mk-logo { width: 110px; height: 28px; flex: none; }
+  .mk-nav { display: none; gap: 20px; flex: 1; }
+  .mk-nav .sk { width: 70px; height: 12px; }
+  .mk-search { display: none; width: 260px; height: 34px; }
+  .mk-icons { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .mk-icons .sk { width: 26px; height: 26px; }
+
+  /* Cart icon with item counter (real) */
+  .mk-carticon { position: relative; display: inline-flex; width: 26px; height: 26px; color: var(--color-text); }
+  .mk-carticon svg { width: 100%; height: 100%; }
+  .mk-carticon__badge {
+    position: absolute; top: -6px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px;
+    background: var(--color-accent); color: var(--color-accent-contrast);
+    font-family: var(--font-body); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+    border-radius: 999px; transition: transform var(--transition-fast);
+  }
+  .mk-carticon__badge.is-bumped { transform: scale(1.3); }
+
+  /* Heading + order steps */
+  .mk-head { display: flex; flex-direction: column; gap: 16px; margin: 24px 0 8px; }
+  .mk-title { margin: 0; color: var(--color-text); font-family: var(--font-heading); font-size: var(--font-size-title); font-weight: var(--font-weight-title); line-height: 1.2; }
+  .mk-steps { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .mk-step { display: flex; align-items: center; gap: 8px; }
+  .mk-step__no { width: 24px; height: 24px; flex: none; }
+  .mk-step__label { width: 56px; height: 10px; }
+  .mk-step--active .mk-step__no { display: inline-flex; align-items: center; justify-content: center; background: var(--color-text); color: var(--color-bg); font-family: var(--font-body); font-size: var(--font-size-sm); font-weight: 700; border-radius: 50%; }
+  .mk-step--active .mk-step__label { width: auto; height: auto; color: var(--color-text); font-family: var(--font-body); font-size: var(--font-size-sm); font-weight: 700; }
+  .mk-step__sep { width: 24px; height: 2px; }
+
+  /* Layout: list → summary → frame (mobile); list | summary, frame | summary (desktop) */
+  .mk-cart { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "sum" "frame"; column-gap: 32px; }
+  .mk-cart.is-empty { grid-template-areas: "list" "frame"; }
+  .mk-list { grid-area: list; }
+  .mk-sum { grid-area: sum; }
+  .mk-frame { grid-area: frame; min-width: 0; }
+  .mk-cart.is-empty .mk-rows,
+  .mk-cart.is-empty .mk-sum,
+  .mk-cart.has-items .mk-empty { display: none; }
+
+  /* Basket rows (real data) */
+  .mk-rows { margin: 16px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--color-border); }
+  .mk-row {
+    display: grid; grid-template-columns: 72px minmax(0, 1fr); grid-template-areas: "media info" "media price";
+    gap: 4px 16px; padding: 16px 0; border-bottom: 1px solid var(--color-border); font-family: var(--font-body);
+  }
+  .mk-row__media { grid-area: media; aspect-ratio: 1; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-image); overflow: hidden; }
+  .mk-row__img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+  .mk-row__info { grid-area: info; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .mk-row__cat { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  .mk-row__cat:empty { display: none; }
+  .mk-row__name { margin: 0; color: var(--color-text); font-size: var(--font-size-base); font-weight: 700; line-height: var(--line-height-base); }
+  /* Quantity stepper: [− | trash] qty [+] */
+  .mk-qty { display: inline-flex; align-items: center; align-self: flex-start; margin-top: 4px; color: var(--color-text); font-size: var(--font-size-sm); border: 1px solid var(--color-border); border-radius: var(--radius-cta); }
+  .mk-qty__btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: none; color: var(--color-text); border: 0; border-radius: var(--radius-cta); cursor: pointer; transition: background var(--transition-fast), color var(--transition-fast); }
+  .mk-qty__btn svg { width: 16px; height: 16px; }
+  .mk-qty__btn:hover:not(:disabled) { background: var(--color-surface); }
+  .mk-qty__btn:disabled { color: var(--color-border); cursor: not-allowed; }
+  .mk-qty__btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+  .mk-qty__val { min-width: 24px; text-align: center; font-weight: 700; }
+  .mk-qty__trash { display: none; }
+  .mk-row.is-single .mk-qty__minus { display: none; }
+  .mk-row.is-single .mk-qty__trash { display: block; }
+  .mk-row.is-single [data-act="dec"]:hover { color: var(--color-price-sale); }
+  .mk-title:focus { outline: none; }
+  .mk-row__price { grid-area: price; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 0; }
+  .mk-row__now { color: var(--color-text); font-size: var(--font-size-price); font-weight: var(--font-weight-price); white-space: nowrap; }
+  .mk-row__price.is-sale .mk-row__now { color: var(--color-price-sale); }
+  .mk-row__old { color: var(--color-price-old); font-size: var(--font-size-sm); white-space: nowrap; }
+  .mk-row__old:empty { display: none; }
+  .mk-row.is-new { animation: mk-row-in 600ms ease; }
+  @keyframes mk-row-in { from { background: var(--color-surface); } to { background: transparent; } }
+
+  /* Empty basket */
+  .mk-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; padding: 32px 16px; text-align: center; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-card); font-family: var(--font-body); }
+  .mk-empty__icon { width: 48px; height: 48px; color: var(--color-text-muted); }
+  .mk-empty__title { margin: 0; color: var(--color-text); font-family: var(--font-heading); font-size: calc(var(--font-size-title) * 0.8); }
+  .mk-empty__line { width: 220px; max-width: 80%; height: 10px; }
+
+  /* Buttons (static in the demo) */
+  .mk-btn {
+    display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 24px;
+    background: var(--color-cta-bg); color: var(--color-cta-text);
+    font-family: var(--font-body); font-size: var(--font-size-base); font-weight: 700; text-decoration: none;
+    border-radius: var(--radius-cta); pointer-events: none;
+  }
+
+  /* Summary */
+  .mk-sum { margin-top: 24px; padding: 20px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-card); font-family: var(--font-body); }
+  .mk-sum__title { margin: 0 0 16px; color: var(--color-text); font-family: var(--font-heading); font-size: calc(var(--font-size-title) * 0.7); font-weight: var(--font-weight-title); }
+  .mk-sum__rows { margin: 0; }
+  .mk-sum__row { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; color: var(--color-text); font-size: var(--font-size-base); }
+  .mk-sum__row dt, .mk-sum__row dd { margin: 0; }
+  .mk-sum__row dd { white-space: nowrap; }
+  .mk-sum__row--total { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--color-border); font-size: var(--font-size-price); font-weight: var(--font-weight-price); }
+  .mk-sum__free-ship { color: var(--color-success); font-weight: 700; }
+  .mk-sum__btn { margin-top: 16px; }
+  .mk-sum__pay { display: flex; gap: 8px; margin-top: 16px; }
+  .mk-sum__pay .sk { width: 40px; height: 24px; }
+
+  /* Free-shipping bar */
+  .mk-free { margin: 16px 0 4px; padding: 12px; background: var(--color-surface); border-radius: var(--radius-card); }
+  .mk-free[hidden] { display: none; }
+  .mk-free__text { margin: 0 0 8px; color: var(--color-text); font-size: var(--font-size-sm); }
+  .mk-free__track { height: var(--progress-height); background: var(--color-progress-track); border-radius: 999px; overflow: hidden; }
+  .mk-free__fill { width: 0; height: 100%; background: var(--color-progress-fill); border-radius: inherit; transition: width 400ms ease; }
+  .mk-free.is-free .mk-free__text { color: var(--color-success); font-weight: 700; }
+  .mk-free.is-free .mk-free__fill { background: var(--color-success); }
+
+  /* Rest of the page */
+  .mk-h { width: 180px; height: 16px; margin: 0 0 16px; }
+  .mk-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .mk-prod .img { aspect-ratio: 1; }
+  .mk-prod .t { height: 10px; margin-top: 10px; width: 80%; }
+  .mk-prod .p { height: 12px; margin-top: 8px; width: 40%; }
+
+  .mk-foot { margin-top: 40px; padding: 32px var(--roi-gutter); background: var(--roi-skeleton-surface); }
+  .mk-foot__in { max-width: var(--roi-max-width); margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .mk-foot .sk { height: 10px; margin-bottom: 10px; }
+
+  @media (min-width: 640px) {
+    .mk-row { grid-template-columns: 96px minmax(0, 1fr) auto; grid-template-areas: "media info price"; align-items: start; }
+    .mk-row__price { flex-direction: column; align-items: flex-end; }
+    .mk-grid { grid-template-columns: repeat(4, 1fr); }
+    .mk-foot__in { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .mk-nav { display: flex; }
+    .mk-search { display: block; }
+    .mk-head { flex-direction: row; align-items: center; justify-content: space-between; }
+    .mk-cart { grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "list sum" "frame sum"; align-items: start; }
+    .mk-cart.is-empty { grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "frame"; }
+    .mk-sum { position: sticky; top: 16px; margin-top: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mk-row.is-new { animation: none; }
+  }
+</style>
+
+<header class="mk-top roi-bg">
+  <div class="mk-top__in">
+    <div class="sk sk--strong mk-logo" aria-hidden="true"></div>
+    <nav class="mk-nav" aria-hidden="true"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></nav>
+    <div class="sk sk--pill mk-search" aria-hidden="true"></div>
+    <div class="mk-icons">
+      <div class="sk sk--round" aria-hidden="true"></div><div class="sk sk--round" aria-hidden="true"></div>
+      <span class="mk-carticon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>
+        <span class="roi-visually-hidden">Produkty w koszyku:</span>
+        <span class="mk-carticon__badge" data-mk-cart-count>{{cartCount}}</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="roi-page">
+  <div class="mk-head">
+    <h1 class="mk-title" tabindex="-1" data-mk-title>Koszyk</h1>
+    <ol class="mk-steps roi-bg" aria-label="Kroki zamówienia">
+      <li class="mk-step mk-step--active" aria-current="step"><span class="mk-step__no">1</span><span class="mk-step__label">Koszyk</span></li>
+      <li class="sk mk-step__sep" aria-hidden="true"></li>
+      <li class="mk-step" aria-hidden="true"><span class="sk sk--round mk-step__no"></span><span class="sk mk-step__label"></span></li>
+      <li class="sk mk-step__sep" aria-hidden="true"></li>
+      <li class="mk-step" aria-hidden="true"><span class="sk sk--round mk-step__no"></span><span class="sk mk-step__label"></span></li>
+    </ol>
+  </div>
+
+  <div class="mk-cart {{cartState}}" data-mk-cart>
+    <!-- Basket rows (rendered by the script below) or the empty state -->
+    <section class="mk-list" aria-label="Produkty w koszyku">
+      <ul class="mk-rows" data-mk-cart-list></ul>
+      <p class="roi-visually-hidden" aria-live="polite" data-mk-live></p>
+      <div class="mk-empty roi-bg">
+        <svg class="mk-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"/><circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>
+        <p class="mk-empty__title">Twój koszyk jest pusty</p>
+        <div class="sk mk-empty__line" aria-hidden="true"></div>
+        <a class="mk-btn" href="#" tabindex="-1">Przejdź do zakupów</a>
+      </div>
+    </section>
+
+    <!-- Summary: right on desktop, under the list on mobile -->
+    <aside class="mk-sum roi-bg" aria-label="Podsumowanie koszyka">
+      <h2 class="mk-sum__title">Podsumowanie</h2>
+      <dl class="mk-sum__rows">
+        <div class="mk-sum__row"><dt>Wartość produktów</dt><dd data-mk-sum="subtotal"></dd></div>
+        <div class="mk-sum__row"><dt>Dostawa</dt><dd data-mk-sum="shipping"></dd></div>
+        <div class="mk-sum__row mk-sum__row--total"><dt>Suma</dt><dd data-mk-sum="total"></dd></div>
+      </dl>
+      <div class="mk-free" data-mk-free hidden>
+        <p class="mk-free__text" data-mk-free-text aria-live="polite"></p>
+        <div class="mk-free__track" role="progressbar" aria-label="Postęp do darmowej dostawy" aria-valuemin="0" aria-valuemax="100" data-mk-free-bar>
+          <div class="mk-free__fill" data-mk-free-fill></div>
+        </div>
+      </div>
+      <a class="mk-btn mk-sum__btn" href="#" tabindex="-1">Przejdź do dostawy</a>
+      <div class="mk-sum__pay" aria-hidden="true"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+    </aside>
+
+    <!-- ROI frame with the widget -->
+    <div class="mk-frame">
+      <div class="roi-frame">
+        <span class="roi-frame__label">{{frameLabel}}</span>
+        {{widget}}
+      </div>
+    </div>
+  </div>
+
+  <div class="roi-bg" aria-hidden="true">
+    <div class="sk mk-h"></div>
+    <div class="mk-grid">
+      <div class="mk-prod"><div class="sk img"></div><div class="sk t"></div><div class="sk p"></div></div>
+      <div class="mk-prod"><div class="sk img"></div><div class="sk t"></div><div class="sk p"></div></div>
+      <div class="mk-prod"><div class="sk img"></div><div class="sk t"></div><div class="sk p"></div></div>
+      <div class="mk-prod"><div class="sk img"></div><div class="sk t"></div><div class="sk p"></div></div>
+    </div>
+  </div>
+</main>
+
+<footer class="mk-foot roi-bg" aria-hidden="true">
+  <div class="mk-foot__in">
+    <div><div class="sk" style="width:60%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:50%"></div></div>
+    <div><div class="sk" style="width:60%"></div><div class="sk" style="width:70%"></div><div class="sk" style="width:40%"></div></div>
+    <div><div class="sk" style="width:50%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:60%"></div></div>
+    <div><div class="sk" style="width:70%"></div><div class="sk" style="width:50%"></div><div class="sk" style="width:60%"></div></div>
+  </div>
+</footer>
+
+<!-- Basket row, filled via data-slot by the script below -->
+<template id="mk-cart-row">
+  <li class="mk-row">
+    <div class="mk-row__media"><img class="mk-row__img" data-slot="image" src="" alt="" width="120" height="120"></div>
+    <div class="mk-row__info">
+      <p class="mk-row__cat" data-slot="category"></p>
+      <p class="mk-row__name" data-slot="name"></p>
+      <div class="mk-qty" role="group" data-slot="qtyGroup">
+        <button class="mk-qty__btn" type="button" data-act="dec" data-slot="dec">
+          <svg class="mk-qty__minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg>
+          <svg class="mk-qty__trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>
+        </button>
+        <span class="mk-qty__val" data-slot="qty"></span>
+        <button class="mk-qty__btn" type="button" data-act="inc" data-slot="inc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+    <p class="mk-row__price" data-slot="priceRow">
+      <span class="mk-row__now" data-slot="price"></span>
+      <s class="mk-row__old" data-slot="oldPrice"></s>
+    </p>
+  </li>
+</template>
+
+<script>
+  (() => {
+    'use strict';
+    // Basket demo: rows + summary from the shared state (core/cart.js → ROI.cart).
+    // The mock sits before the core scripts, so it starts on DOMContentLoaded.
+    document.addEventListener('DOMContentLoaded', () => {
+      const cart = window.ROI && window.ROI.cart;
+      const root = document.querySelector('[data-mk-cart]');
+      if (!cart || !root) return;
+
+      const { settings, max } = cart;
+      const threshold = settings.freeShippingThreshold;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      // "1 299,00 zł" – same format as the widgets (non-breaking spaces)
+      const formatPrice = (value, currency = settings.currency) => {
+        if (!Number.isFinite(value)) return '';
+        const [int, dec] = value.toFixed(2).split('.');
+        return `${int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')},${dec} ${currency === 'PLN' ? 'zł' : currency}`;
+      };
+
+      const list = root.querySelector('[data-mk-cart-list]');
+      const template = document.getElementById('mk-cart-row');
+      const live = root.querySelector('[data-mk-live]');
+      const title = document.querySelector('[data-mk-title]');
+      const sum = (key) => root.querySelector(`[data-mk-sum="${key}"]`);
+      const free = root.querySelector('[data-mk-free]');
+      const counters = document.querySelectorAll('[data-mk-cart-count]');
+
+      const rowOf = (id) => list.querySelector(`.mk-row[data-product-id="${CSS.escape(id)}"]`);
+      const slotIn = (row, name) => row.querySelector(`[data-slot="${name}"]`);
+
+      const createRow = (p) => {
+        const row = template.content.firstElementChild.cloneNode(true);
+        const img = slotIn(row, 'image');
+        img.alt = p.name;
+        if (p.image) img.src = p.image;
+        slotIn(row, 'category').textContent = p.category || '';
+        slotIn(row, 'name').textContent = p.name;
+        slotIn(row, 'qtyGroup').setAttribute('aria-label', `Ilość: ${p.name}`);
+        slotIn(row, 'priceRow').classList.toggle('is-sale', p.oldPrice != null);
+        row.dataset.productId = p.id;
+        return row;
+      };
+
+      // Quantity, row price × qty, button labels and states
+      const fillRow = (row, p, qty) => {
+        const dec = slotIn(row, 'dec');
+        const inc = slotIn(row, 'inc');
+        row.classList.toggle('is-single', qty === 1);
+        slotIn(row, 'qty').textContent = qty;
+        slotIn(row, 'price').textContent = formatPrice(p.price * qty, p.currency);
+        slotIn(row, 'oldPrice').textContent = p.oldPrice != null ? formatPrice(p.oldPrice * qty, p.currency) : '';
+        dec.setAttribute('aria-label', `${qty === 1 ? 'Usuń z koszyka' : 'Zmniejsz ilość'}: ${p.name}`);
+        inc.setAttribute('aria-label', `Zwiększ ilość: ${p.name}`);
+        // + becomes disabled at the limit – keep focus inside the stepper
+        if (qty >= max && document.activeElement === inc) dec.focus();
+        inc.disabled = qty >= max;
+      };
+
+      // Empty state only once the leaving rows have finished their animation
+      let leaving = 0;
+      const applyState = () => {
+        const empty = cart.items().length === 0;
+        if (empty && leaving) return;
+        root.classList.toggle('has-items', !empty);
+        root.classList.toggle('is-empty', empty);
+      };
+
+      const otherRow = (row, dir) => {
+        let el = row[dir];
+        while (el && el.classList.contains('is-leaving')) el = el[dir];
+        return el;
+      };
+
+      const leave = (row) => {
+        // focus inside the removed row → next row, else previous, else the heading
+        if (row.contains(document.activeElement)) {
+          const target = otherRow(row, 'nextElementSibling') || otherRow(row, 'previousElementSibling');
+          (target ? slotIn(target, 'dec') : title).focus();
+        }
+        row.classList.add('is-leaving');
+        row.removeAttribute('data-product-id'); // a re-added product gets a fresh row
+        row.inert = true;
+        let finished = false;
+        const done = () => {
+          if (finished) return;
+          finished = true;
+          row.remove();
+          leaving -= 1;
+          applyState();
+        };
+        leaving += 1;
+        if (reducedMotion.matches || !row.animate) return done();
+        setTimeout(done, 350); // fallback if the animation never finishes (e.g. background tab)
+        const { paddingTop, paddingBottom } = getComputedStyle(row);
+        const h = row.offsetHeight;
+        row.style.overflow = 'hidden';
+        row.style.boxSizing = 'border-box';
+        row.animate(
+          [
+            { height: `${h}px`, paddingTop, paddingBottom, opacity: 1 },
+            { height: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 }
+          ],
+          { duration: 250, easing: 'ease' }
+        ).onfinish = done;
+      };
+
+      const renderSummary = () => {
+        const { count, subtotal } = cart.totals();
+        const isFree = threshold != null && subtotal >= threshold;
+        const shipping = isFree || !count ? 0 : settings.shippingCost;
+
+        counters.forEach((el) => { el.textContent = count; });
+        sum('subtotal').textContent = formatPrice(subtotal);
+        sum('shipping').textContent = shipping ? formatPrice(shipping) : 'Gratis';
+        sum('shipping').classList.toggle('mk-sum__free-ship', !shipping);
+        sum('total').textContent = formatPrice(subtotal + shipping);
+
+        free.hidden = threshold == null;
+        if (threshold != null) {
+          const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
+          free.classList.toggle('is-free', isFree);
+          free.querySelector('[data-mk-free-fill]').style.width = `${pct}%`;
+          free.querySelector('[data-mk-free-bar]').setAttribute('aria-valuenow', String(pct));
+          free.querySelector('[data-mk-free-text]').textContent = isFree
+            ? 'Masz darmową dostawę ✓'
+            : `Brakuje ${formatPrice(threshold - subtotal)} do darmowej dostawy`;
+        }
+      };
+
+      // Rows are updated in place (focus stays on the clicked button); new products go last
+      const render = (change) => {
+        list.querySelectorAll('.mk-row[data-product-id]').forEach((row) => {
+          if (!cart.qty(row.dataset.productId)) leave(row);
+        });
+        for (const { productId, qty } of cart.items()) {
+          const p = cart.product(productId);
+          let row = rowOf(productId);
+          if (!row) {
+            row = createRow(p);
+            list.append(row);
+            if (change) row.classList.add('is-new');
+          }
+          fillRow(row, p, qty);
+        }
+        renderSummary();
+        applyState();
+      };
+
+      list.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        const id = btn && !btn.disabled && btn.closest('.mk-row').dataset.productId;
+        if (!id) return;
+        const qty = cart.qty(id);
+        cart.setQty(id, btn.dataset.act === 'inc' ? qty + 1 : qty - 1, { source: 'cart' });
+      });
+
+      cart.subscribe(({ change }) => {
+        render(change);
+        // changes made here are announced here; widgets announce their own (toast)
+        if (change.source === 'cart') {
+          const name = cart.product(change.productId).name;
+          live.textContent = change.qtyAfter
+            ? `${name}: ${change.qtyAfter} szt.`
+            : `Usunięto z koszyka: ${name}`;
+        }
+        counters.forEach((el) => {
+          el.classList.add('is-bumped');
+          setTimeout(() => el.classList.remove('is-bumped'), 200);
+        });
+      });
+
+      render(null);
+    });
+  })();
+</script>

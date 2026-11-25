@@ -186,10 +186,41 @@ function normalizeProduct(raw) {
 }
 
 /**
- * Order: `pick` IDs → (with `anchor`, a raw catalog item) same categoryL1 as the anchor
- * → rest of the catalog. The anchor product itself is never included.
+ * Anchor products of the page (raw catalog items):
+ *   `anchor`    – the "current" product (product page)
+ *   `cartItems` – products in the basket: "ID" or { id, qty }
+ * Both are anchors: never shown in the widget and used for the `related` ordering.
  */
-function pickProducts(catalog, { pick, count, anchor }) {
+function resolveAnchors(catalog, settings) {
+  const find = (id) => catalog.find((x) => String(x.id) === String(id)) || null;
+
+  let anchor = null;
+  if (settings.anchor != null) {
+    anchor = find(settings.anchor);
+    if (!anchor) console.warn(`  ! produkt bazowy ${settings.anchor} nie istnieje (anchor missing)`);
+  }
+
+  const cart = [];
+  for (const entry of Array.isArray(settings.cartItems) ? settings.cartItems : []) {
+    const id = entry && typeof entry === 'object' ? entry.id : entry;
+    const item = find(id);
+    if (!item) { console.warn(`  ! produkt koszyka ${id} nie istnieje (cart item missing)`); continue; }
+    const qty = Math.max(1, Math.floor(num(entry && entry.qty) || 1));
+    cart.push({ item, qty });
+  }
+
+  return { anchor, cart, anchors: [anchor, ...cart.map((c) => c.item)].filter(Boolean) };
+}
+
+const categoryOf = (x) => x.categoryL2 || x.categoryL1;
+
+/**
+ * Order: `pick` IDs → related to the anchors → rest of the catalog. Anchors are never included.
+ * related: "similar" (default) – same categoryL1 as an anchor;
+ *          "complementary"     – a category (categoryL2 || categoryL1) no anchor has,
+ *                                taking one product per category in turn.
+ */
+function pickProducts(catalog, { pick, count, anchors = [], related = 'similar' }) {
   const byId = new Map(catalog.map((x) => [String(x.id), x]));
   const out = [];
   for (const id of Array.isArray(pick) ? pick : []) {
@@ -198,13 +229,33 @@ function pickProducts(catalog, { pick, count, anchor }) {
     else console.warn(`  ! produkt ${id} nie istnieje w katalogu (product not found)`);
   }
 
+  const isAnchor = (item) => anchors.includes(item);
   const add = (item) => {
-    if (out.length < count && item !== anchor && !out.includes(item)) out.push(item);
+    if (out.length < count && !isAnchor(item) && !out.includes(item)) out.push(item);
   };
-  // similar first
-  if (anchor) catalog.filter((x) => x.categoryL1 === anchor.categoryL1).forEach(add);
+  if (anchors.length) {
+    if (related === 'complementary') {
+      // one product per other category in turn (the catalog is sorted by category)
+      const taken = new Set(anchors.map(categoryOf));
+      const groups = new Map();
+      for (const x of catalog) {
+        const key = categoryOf(x);
+        if (taken.has(key)) continue;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(x);
+      }
+      const queues = [...groups.values()];
+      const longest = Math.max(0, ...queues.map((q) => q.length));
+      for (let i = 0; i < longest && out.length < count; i++) {
+        queues.forEach((q) => { if (q[i]) add(q[i]); });
+      }
+    } else {
+      const l1 = new Set(anchors.map((a) => a.categoryL1));
+      catalog.filter((x) => l1.has(x.categoryL1)).forEach(add);
+    }
+  }
   catalog.forEach(add); // fill up to `count` with further catalog items
-  return out.filter((x) => x !== anchor).slice(0, count);
+  return out.filter((x) => !isAnchor(x)).slice(0, count);
 }
 
 // "1 299,00 zł" – same format as formatPrice() in the widgets (non-breaking spaces)
@@ -231,6 +282,35 @@ function anchorVars(a) {
   };
 }
 
+/**
+ * Initial demo basket (build entry `cartItems`) → window.ROI_CART, read by core/cart.js.
+ * Always embedded; without cartItems the basket is empty.
+ */
+function cartData(cart, settings) {
+  const items = cart.map(({ item, qty }) => ({ ...normalizeProduct(item), qty }));
+  const threshold = num(settings.freeShippingThreshold);
+  return {
+    items,
+    maxQty: Math.max(1, Math.floor(num(settings.maxQty) || 10)),
+    shippingCost: num(settings.shippingCost) || 0,
+    freeShippingThreshold: threshold != null && threshold > 0 ? threshold : null,
+    currency: (items[0] && items[0].currency) || 'PLN'
+  };
+}
+
+// Optional mock placeholders for the basket – initial state, so the page renders without a flash
+function cartVars(data) {
+  return {
+    cartState: data.items.length ? 'has-items' : 'is-empty',
+    cartCount: String(data.items.reduce((sum, x) => sum + x.qty, 0))
+  };
+}
+
+// Optional mock values (anchor*, cart*) – only for placeholders the mock contains
+function mockVars(mockTpl, vars) {
+  return Object.fromEntries(Object.entries(vars).filter(([key]) => mockTpl.includes(`{{${key}}}`)));
+}
+
 // --- Single build -----------------------------------------------------
 function buildOne(placementCfg, entry) {
   const placement = placementCfg.placement;
@@ -243,13 +323,10 @@ function buildOne(placementCfg, entry) {
   const count = settings.count || 8;
 
   const catalog = loadCatalog(vertical);
-  let anchor = null; // raw catalog item of the anchor product ("current" product of the page)
-  if (settings.anchor != null) {
-    anchor = catalog.find((x) => String(x.id) === String(settings.anchor)) || null;
-    if (!anchor) console.warn(`  ! produkt bazowy ${settings.anchor} nie istnieje (anchor missing)`);
-  }
+  // raw catalog items: anchor ("current" product of the page) + basket contents
+  const { anchor, cart, anchors } = resolveAnchors(catalog, settings);
 
-  const products = pickProducts(catalog, { pick: settings.pick, count, anchor })
+  const products = pickProducts(catalog, { pick: settings.pick, count, anchors, related: settings.related })
     .map(normalizeProduct);
   if (!products.length) console.warn(`  ! brak produktów dla ${vertical} (no products)`);
 
@@ -266,14 +343,13 @@ function buildOne(placementCfg, entry) {
     labelDots: escapeHtml(texts.dots)
   }, `widgets/${widget}/widget.html`, { ignoreUnused: !!settings.ignoreUnusedVars }); // e.g. bars use no carousel labels
 
-  // 2) Placement mock; anchor* values only for placeholders the mock actually uses
+  // 2) Placement mock; anchor* / cart* values only for placeholders the mock actually uses
   const mockTpl = read(p('placements', placement, 'mock.html'));
-  const mockAnchor = Object.entries(anchorVars(anchor && normalizeProduct(anchor)))
-    .filter(([key]) => mockTpl.includes(`{{${key}}}`));
+  const cartInit = cartData(cart, settings);
   const mockHtml = fill(mockTpl, {
     frameLabel: escapeHtml(settings.frameLabel || ''),
     widget: widgetHtml,
-    ...Object.fromEntries(mockAnchor)
+    ...mockVars(mockTpl, { ...anchorVars(anchor && normalizeProduct(anchor)), ...cartVars(cartInit) })
   }, `placements/${placement}/mock.html`);
 
   // 3) CSS: theme → core/base → core/presentation → widget
@@ -284,12 +360,13 @@ function buildOne(placementCfg, entry) {
     `/* widgets/${widget}/widget.css */`, readOptional(path.join(widgetDir, 'widget.css'))
   ].join('\n');
 
-  // 4) JS: core → widget
+  // 4) JS: core (tracker → carousel → popup → cart) → widget
   const js = [
     '/* core/tracker.js */', read(p('core', 'tracker.js')),
     '/* core/preview-bridge.js */', readOptional(p('core', 'preview-bridge.js')), // forwards events to preview.html when framed
     '/* core/carousel.js */', read(p('core', 'carousel.js')),
     '/* core/popup.js */', read(p('core', 'popup.js')),
+    '/* core/cart.js */', read(p('core', 'cart.js')),
     `/* widgets/${widget}/widget.js */`, read(path.join(widgetDir, 'widget.js'))
   ].join('\n');
 
@@ -308,6 +385,7 @@ function buildOne(placementCfg, entry) {
     step: settings.step,
     autoplay: !!settings.autoplay,
     autoplayMs: settings.autoplayMs,
+    campaignId: settings.campaignId || null,
     texts
   };
 
@@ -322,6 +400,7 @@ function buildOne(placementCfg, entry) {
     templates: readOptional(path.join(widgetDir, 'product-card.html')),
     configJson: scriptJson(config),
     productsJson: scriptJson(products),
+    cartJson: scriptJson(cartInit),
     js
   }, 'core/page-shell.html');
 
