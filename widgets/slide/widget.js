@@ -215,12 +215,12 @@
           max: 120,
           value: parseFloat(root.getAttribute('data-delay')) || 0
         },
-        {key: 'exitIntent', type: 'switch', label: 'Exit intent', rbh: 3, value: on('exit-intent')},
+        {key: 'exitIntent', type: 'switch', label: 'Exit intent', rbh: 0, value: on('exit-intent')},
         {
           key: 'left',
           type: 'switch',
           label: 'Po lewej stronie',
-          rbh: 1,
+          rbh: 0,
           value: root.getAttribute('data-side') === 'left'
         },
         {
