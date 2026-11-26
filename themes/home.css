@@ -41,6 +41,11 @@
   --color-success-contrast: #ffffff;
   --color-progress-track: #ece6dd;  /* free-shipping bar */
   --color-progress-fill: #8a5a3b;
+  --color-tab-bg: #ffffff;          /* category tabs */
+  --color-tab-text: #1f1c19;
+  --color-tab-border: #ddd6cc;
+  --color-tab-active-bg: #1f1c19;
+  --color-tab-active-text: #ffffff;
 
   /* Shapes */
   --radius-widget: 0px;
@@ -49,6 +54,7 @@
   --radius-badge: 2px;
   --radius-button: 999px;
   --radius-cta: 4px;                /* text buttons (add to cart, checkout) */
+  --radius-tab: 999px;              /* category tabs */
 
   /* Spacing */
   --space-1: 4px;

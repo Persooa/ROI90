@@ -1,0 +1,24 @@
+{
+  "placement": "404",
+  "label": "Strona 404",
+  "builds": [
+    {
+      "vertical": "home",
+      "widget": "bestseller",
+      "frameLabel": "Scenariusz ROI · Bestsellery na stronie 404",
+      "pageTitle": "Bestsellery – strona 404 | Demo ROI",
+      "pageDescription": "Demo ramki rekomendacyjnej „Bestsellery” na stronie błędu 404 – wersja desktop i mobile.",
+      "campaignId": "demo-bestseller",
+      "count": 40,
+      "pick": [
+        "NH10179", "NH10777", "NH10386", "NH10459", "NH10789", "NH10975", "NH10164", "NH10529",
+        "NH10794", "NH10595", "NH10834", "NH10952", "NH10498", "NH10256", "NH10804", "NH10297",
+        "NH10690", "NH10645", "NH10195", "NH10331", "NH10504", "NH10790", "NH10825", "NH10647",
+        "NH10352", "NH10442", "NH10811", "NH10122", "NH10985", "NH10831", "NH10231", "NH10474",
+        "NH10573", "NH10477", "NH10336", "NH10378", "NH10226", "NH10411", "NH10087", "NH10278"
+      ],
+      "autoplay": false,
+      "step": "card"
+    }
+  ]
+}

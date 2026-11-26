@@ -1,0 +1,42 @@
+{
+  "type": "bestseller",
+  "count": 40,
+  "title": "Bestsellery",
+  "subtitle": "Może zainteresuje Cię to, co najczęściej wybierają inni",
+  "step": "card",
+  "autoplay": false,
+  "autoplayMs": 5000,
+  "texts": {
+    "perTab": 8,
+    "tabs": [
+      {
+        "key": "Living Room",
+        "label": "Salon",
+        "categories": ["Sofas & Armchairs", "Coffee Tables", "Desks & Consoles", "Shelving & Storage", "Rugs"]
+      },
+      {
+        "key": "Bedroom",
+        "label": "Sypialnia",
+        "categories": ["Beds", "Bedding", "Wardrobes & Dressers", "Nightstands"]
+      },
+      {
+        "key": "Dining & Kitchen",
+        "label": "Jadalnia i kuchnia",
+        "categories": ["Dining Tables", "Chairs", "Tableware", "Kitchen Storage"]
+      }
+    ],
+    "prev": "Poprzednie produkty",
+    "next": "Następne produkty",
+    "dots": "Wybierz produkt",
+    "dot": "Produkt {i} z {n}",
+    "tabAll": "Wszystkie",
+    "tabsLabel": "Kategorie bestsellerów",
+    "carouselLabel": "Bestsellery: {tab}",
+    "productToast": "W realnym wdrożeniu: przejście do karty produktu",
+    "badgeNew": "Nowość",
+    "badgeSale": "Wyprzedaż",
+    "labelSuggested": "Cena sugerowana:",
+    "labelLowest": "Najniższa cena:",
+    "pricePrefix": "Cena:"
+  }
+}
