@@ -1,0 +1,31 @@
+<!-- Add to cart: CTA button + mini cart drawer (the drawer is moved to <body> by widget.js).
+     Product data is read from the page: elements with data-roi-product="name|price|old-price|discount|image". -->
+<div class="rk-atc" id="{{widgetId}}" data-rk-atc>
+  <button type="button" class="rk-atc__btn" data-rk-atc-btn>Dodaj do koszyka</button>
+
+  <div class="rk-atc__drawer" data-rk-atc-drawer hidden>
+    <aside class="rk-atc__panel" data-popup-dialog aria-labelledby="{{widgetId}}-title">
+      <header class="rk-atc__head">
+        <h2 class="rk-atc__title" id="{{widgetId}}-title">Koszyk (<span data-atc-count>0</span>)</h2>
+        <button type="button" class="rk-atc__x" data-popup-close aria-label="Zamknij koszyk">&times;</button>
+      </header>
+      <div class="rk-atc__body">
+        <div class="rk-atc__alert rk-atc__alert--ok" role="status" data-atc-added hidden>
+          <span class="rk-atc__alert-ico" aria-hidden="true">&#10003;</span>
+          <span class="rk-atc__alert-txt">Produkt został pomyślnie dodany do koszyka.</span>
+        </div>
+        <div class="rk-atc__alert rk-atc__alert--info">
+          <span class="rk-atc__alert-ico" aria-hidden="true">i</span>
+          <span class="rk-atc__alert-txt">Dodanie produktów do koszyka nie jest jednoznaczne z ich rezerwacją. Nie zwlekaj z dokończeniem zamówienia!</span>
+        </div>
+        <div data-atc-items></div>
+        <p class="rk-atc__empty" data-atc-empty hidden>Twój koszyk jest pusty.</p>
+      </div>
+      <footer class="rk-atc__foot">
+        <div class="rk-atc__row"><span>Suma częściowa</span><b data-atc-total>0,00 zł</b></div>
+        <div class="rk-atc__row"><span>Dostawa</span><b class="is-free">Darmowa</b></div>
+        <button type="button" class="rk-atc__go" data-atc-checkout>Przejdź do kasy</button>
+      </footer>
+    </aside>
+  </div>
+</div>

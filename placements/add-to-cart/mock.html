@@ -1,11 +1,14 @@
 <!-- =====================================================================
-     Mock: shop product page (PDP)
-     Grey skeleton .roi-bg = blurred & dimmed; ROI frame stays sharp on top.
-     Layout: header → breadcrumbs → gallery + product info → ROI frame → description → footer
-     Slots: frameLabel, widget – in double braces
+     Mock: shop product page (generic – used by any product-page widget)
+     Grey skeleton .roi-bg = page context; ROI frame + highlight from core/presentation.css.
+     The anchor product (build entry "anchor") is shown for real: image, category, name, price.
+     Without an anchor the product section is a skeleton (class no-anchor).
+     The "add to cart" widget (widgets/add-to-cart) replaces the CTA; its frame wraps only the widget.
+     Slots in double braces: frameLabel, widget, anchorState, anchorName, anchorCategory,
+     anchorImage, anchorPrice, anchorOldPrice, anchorDiscount
      ===================================================================== -->
 <style>
-  /* Mock styles – --roi-* variables only */
+  /* Skeleton: --roi-* variables only. The anchor product uses theme variables (shop look). */
   .mk-top { background: var(--roi-skeleton-surface); border-bottom: 1px solid var(--roi-skeleton); }
   .mk-top__in { max-width: var(--roi-max-width); margin: 0 auto; padding: 14px var(--roi-gutter); display: flex; align-items: center; gap: 24px; }
   .mk-logo { width: 110px; height: 28px; flex: none; }
@@ -15,49 +18,43 @@
   .mk-icons { display: flex; gap: 10px; margin-left: auto; }
   .mk-icons .sk { width: 26px; height: 26px; }
 
-  .mk-crumbs { display: flex; align-items: center; gap: 10px; margin: 16px 0 20px; }
-  .mk-crumbs .sk { height: 10px; width: 64px; }
-  .mk-crumbs .sk:last-child { width: 110px; }
+  .mk-crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .mk-crumbs .sk { height: 10px; }
 
-  .mk-pdp { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  /* Product section: stacked on mobile, gallery | info from 768px */
+  .mk-pdp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .mk-pdp.no-anchor .mk-a,
+  .mk-pdp.has-anchor .mk-na { display: none; }
+
   .mk-gal__main { aspect-ratio: 1; }
-  .mk-gal__thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-  .mk-gal__thumb { aspect-ratio: 1; }
+  .mk-gal__frame { background: var(--roi-skeleton-surface); border: 1px solid var(--roi-skeleton); border-radius: 6px; overflow: hidden; }
+  .mk-gal__img { width: 100%; height: 100%; object-fit: contain; }
+  .mk-gal__thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .mk-gal__thumbs > * { aspect-ratio: 1; }
 
-  .mk-info > * + * { margin-top: 14px; }
-  .mk-brand { width: 90px; height: 10px; }
-  .mk-title { width: 85%; height: 22px; }
-  .mk-title--2 { width: 55%; }
-  .mk-rating { display: flex; align-items: center; gap: 6px; }
-  .mk-rating .sk--round { width: 14px; height: 14px; }
-  .mk-rating .txt { width: 70px; height: 10px; margin-left: 6px; }
-  .mk-price { display: flex; align-items: baseline; gap: 12px; }
-  .mk-price .now { width: 110px; height: 26px; }
-  .mk-price .old { width: 64px; height: 14px; }
-  .mk-opt-label { width: 60px; height: 10px; }
-  .mk-swatches { display: flex; gap: 10px; }
-  .mk-swatches .sk { width: 34px; height: 34px; }
-  .mk-sizes { display: flex; flex-wrap: wrap; gap: 8px; }
-  .mk-sizes .sk { width: 52px; height: 36px; }
-  .mk-buy { display: flex; gap: 10px; }
-  .mk-qty { width: 96px; height: 48px; flex: none; }
-  .mk-cta { flex: 1; height: 48px; }
-  .mk-perks > * + * { margin-top: 10px; }
-  .mk-perks .sk { height: 10px; }
-  .mk-perks .sk:nth-child(1) { width: 70%; }
-  .mk-perks .sk:nth-child(2) { width: 55%; }
-  .mk-acc { border-top: 1px solid var(--roi-skeleton); padding-top: 14px; }
-  .mk-acc .sk { height: 12px; width: 40%; }
-  .mk-acc + .mk-acc { margin-top: 14px; }
+  .mk-info { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .mk-info__real { display: flex; flex-direction: column; gap: 8px; }
+  .mk-cat { margin: 0; color: var(--color-text-muted); font-family: var(--font-body); font-size: var(--font-size-sm); }
+  .mk-name { margin: 0; color: var(--color-text); font-family: var(--font-heading); font-size: var(--font-size-title); font-weight: var(--font-weight-title); line-height: 1.2; }
+  .mk-price-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-family: var(--font-body); }
+  .mk-price { color: var(--color-text); font-size: calc(var(--font-size-price) * 1.4); font-weight: var(--font-weight-price); white-space: nowrap; }
+  .mk-price-row:has(.mk-old:not(:empty)) .mk-price { color: var(--color-price-sale); }
+  .mk-old { color: var(--color-price-old); font-size: var(--font-size-base); white-space: nowrap; }
+  .mk-disc { color: var(--color-price-sale); font-size: var(--font-size-base); font-weight: 700; }
+  .mk-old:empty, .mk-disc:empty { display: none; }
 
-  .mk-desc { margin-top: 40px; }
-  .mk-tabs { display: flex; gap: 20px; margin-bottom: 20px; }
+  .mk-info__sk { display: flex; flex-direction: column; gap: 10px; }
+  .mk-line { height: 12px; }
+  .mk-vars { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mk-vars .sk { width: 64px; height: 32px; }
+  .mk-desc { display: flex; flex-direction: column; gap: 10px; }
+  .mk-desc .sk { height: 10px; }
+
+  .mk-tabs { display: flex; gap: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--roi-skeleton); }
   .mk-tabs .sk { width: 90px; height: 14px; }
-  .mk-lines > * + * { margin-top: 10px; }
-  .mk-lines .sk { height: 10px; }
-  .mk-lines .sk:nth-child(3n + 1) { width: 100%; }
-  .mk-lines .sk:nth-child(3n + 2) { width: 92%; }
-  .mk-lines .sk:nth-child(3n) { width: 60%; }
+  .mk-more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 20px; }
+  .mk-more .sk { height: 10px; margin-bottom: 10px; }
+  .mk-spec { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 
   .mk-foot { margin-top: 40px; padding: 32px var(--roi-gutter); background: var(--roi-skeleton-surface); }
   .mk-foot__in { max-width: var(--roi-max-width); margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
@@ -67,7 +64,8 @@
     .mk-foot__in { grid-template-columns: repeat(4, 1fr); }
   }
   @media (min-width: 768px) {
-    .mk-pdp { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; }
+    .mk-pdp { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+    .mk-more { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; }
   }
   @media (min-width: 1024px) {
     .mk-nav { display: flex; }
@@ -85,63 +83,73 @@
 </header>
 
 <main class="roi-page">
-  <div class="roi-bg" aria-hidden="true">
-    <div class="mk-crumbs"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+  <div class="mk-crumbs roi-bg" aria-hidden="true">
+    <div class="sk" style="width:48px"></div><div class="sk" style="width:80px"></div>
+    <div class="sk" style="width:96px"></div><div class="sk" style="width:120px"></div>
+  </div>
 
-    <div class="mk-pdp">
-      <!-- Gallery -->
-      <div class="mk-gal">
-        <div class="sk mk-gal__main"></div>
-        <div class="mk-gal__thumbs">
-          <div class="sk mk-gal__thumb"></div><div class="sk mk-gal__thumb"></div>
-          <div class="sk mk-gal__thumb"></div><div class="sk mk-gal__thumb"></div>
-        </div>
+  <!-- Product section: real anchor product (.mk-a) or skeleton (.mk-na) -->
+  <section class="mk-pdp {{anchorState}}">
+    <div class="mk-gal">
+      <div class="mk-gal__main mk-gal__frame mk-a">
+        <img class="mk-gal__img" data-roi-product="image" src="{{anchorImage}}" alt="{{anchorName}}" width="600" height="600">
       </div>
-
-      <!-- Product info -->
-      <div class="mk-info">
-        <div class="sk mk-brand"></div>
-        <div>
-          <div class="sk sk--strong mk-title"></div>
-          <div class="sk sk--strong mk-title mk-title--2" style="margin-top:10px"></div>
-        </div>
-        <div class="mk-rating">
-          <div class="sk sk--round"></div><div class="sk sk--round"></div><div class="sk sk--round"></div>
-          <div class="sk sk--round"></div><div class="sk sk--round"></div>
-          <div class="sk txt"></div>
-        </div>
-        <div class="mk-price"><div class="sk sk--strong now"></div><div class="sk old"></div></div>
-
-        <div class="sk mk-opt-label"></div>
-        <div class="mk-swatches"><div class="sk sk--round"></div><div class="sk sk--round"></div><div class="sk sk--round"></div><div class="sk sk--round"></div></div>
-
-        <div class="sk mk-opt-label"></div>
-        <div class="mk-sizes"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
-
-        <div class="mk-buy">
-          <div class="sk sk--pill mk-qty"></div>
-          <div class="sk sk--strong sk--pill mk-cta"></div>
-        </div>
-
-        <div class="mk-perks"><div class="sk"></div><div class="sk"></div></div>
-        <div class="mk-acc"><div class="sk"></div></div>
-        <div class="mk-acc"><div class="sk"></div></div>
+      <div class="mk-gal__main sk mk-na" aria-hidden="true"></div>
+      <div class="mk-gal__thumbs roi-bg" aria-hidden="true">
+        <div class="mk-gal__frame mk-a"><img class="mk-gal__img" src="{{anchorImage}}" alt="" width="120" height="120"></div>
+        <div class="sk mk-na"></div>
+        <div class="sk"></div><div class="sk"></div><div class="sk"></div>
       </div>
     </div>
-  </div>
 
-  <!-- ROI frame with the widget (right below the buy box: cross-sell, similar, last seen) -->
-  <div class="roi-frame">
-    <span class="roi-frame__label">{{frameLabel}}</span>
-    {{widget}}
-  </div>
+    <div class="mk-info">
+      <div class="mk-info__real mk-a">
+        <p class="mk-cat">{{anchorCategory}}</p>
+        <h1 class="mk-name" data-roi-product="name">{{anchorName}}</h1>
+        <p class="mk-price-row">
+          <span class="mk-price" data-roi-product="price">{{anchorPrice}}</span>
+          <s class="mk-old" data-roi-product="old-price">{{anchorOldPrice}}</s>
+          <span class="mk-disc" data-roi-product="discount">{{anchorDiscount}}</span>
+        </p>
+      </div>
+      <div class="mk-info__sk mk-na roi-bg" aria-hidden="true">
+        <div class="sk mk-line" style="width:30%"></div>
+        <div class="sk sk--strong" style="width:80%;height:24px"></div>
+        <div class="sk sk--strong" style="width:35%;height:22px"></div>
+      </div>
+
+      <div class="mk-info__sk roi-bg" aria-hidden="true">
+        <div class="sk mk-line" style="width:25%"></div>
+        <div class="mk-vars"><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div></div>
+      </div>
+
+      <!-- ROI frame around the widget only (outside .roi-bg, so the button stays clickable) -->
+      <div class="roi-frame">
+        <span class="roi-frame__label">{{frameLabel}}</span>
+        {{widget}}
+      </div>
+
+      <div class="mk-info__sk roi-bg" aria-hidden="true">
+        <div class="mk-desc">
+          <div class="sk" style="width:95%"></div><div class="sk" style="width:88%"></div>
+          <div class="sk" style="width:92%"></div><div class="sk" style="width:60%"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <div class="roi-bg" aria-hidden="true">
-    <div class="mk-desc">
-      <div class="mk-tabs"><div class="sk sk--strong"></div><div class="sk"></div><div class="sk"></div></div>
-      <div class="mk-lines">
-        <div class="sk"></div><div class="sk"></div><div class="sk"></div>
-        <div class="sk"></div><div class="sk"></div><div class="sk"></div>
+    <div class="mk-tabs"><div class="sk sk--strong"></div><div class="sk"></div><div class="sk"></div></div>
+    <div class="mk-more">
+      <div>
+        <div class="sk" style="width:96%"></div><div class="sk" style="width:90%"></div><div class="sk" style="width:94%"></div>
+        <div class="sk" style="width:85%"></div><div class="sk" style="width:70%"></div>
+      </div>
+      <div class="mk-spec">
+        <div class="sk" style="width:70%"></div><div class="sk" style="width:50%"></div>
+        <div class="sk" style="width:60%"></div><div class="sk" style="width:40%"></div>
+        <div class="sk" style="width:75%"></div><div class="sk" style="width:55%"></div>
+        <div class="sk" style="width:65%"></div><div class="sk" style="width:45%"></div>
       </div>
     </div>
   </div>

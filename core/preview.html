@@ -8,53 +8,67 @@
   <link rel="stylesheet" href="preview.css">
 </head>
 <body>
-  <div class="controls">
-    <div class="group" role="group" aria-label="Nawigacja">
-      <button class="btn-icon" id="back" aria-label="Wstecz" title="Wstecz" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
-      </button>
-      <button class="btn-icon" id="forward" aria-label="Dalej" title="Dalej" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </button>
-    </div>
-
-    <div class="file" id="fileInfo" aria-live="polite">
-      <code id="file">index.html</code>
-      <span id="title"></span>
-    </div>
-
-    <div class="group">
-      <label for="theme">Motyw</label>
-      <select id="theme" disabled></select>
-    </div>
-
-    <div class="group" data-group="device"><span>Urządzenie</span>
-      <button class="btn-icon" data-v="desktop" aria-label="Desktop">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Desktop
-      </button>
-      <button class="btn-icon" data-v="tablet" aria-label="Tablet">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></svg>Tablet
-      </button>
-      <button class="btn-icon" data-v="mobile" aria-label="Mobile">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Mobile
-      </button>
-    </div>
-
-    <div class="group">
-      <button class="btn-icon" id="toggleLog" aria-pressed="true" aria-controls="log">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Eventy
-      </button>
-    </div>
-
-    <div class="group"><button id="reset">Resetuj</button></div>
+<div class="controls">
+  <div class="group" role="group" aria-label="Nawigacja">
+    <button class="btn-icon" id="back" aria-label="Wstecz" title="Wstecz" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    </button>
+    <button class="btn-icon" id="forward" aria-label="Dalej" title="Dalej" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
   </div>
 
-  <div class="stage">
-    <div class="view" id="view"><iframe id="frame" title="Podgląd"></iframe></div>
+  <div class="file" id="fileInfo" aria-live="polite">
+    <code id="file">index.html</code>
+    <span id="title"></span>
+  </div>
+
+  <div class="group">
+    <label for="theme">Motyw</label>
+    <select id="theme" disabled></select>
+  </div>
+
+  <div class="group" data-group="device"><span>Urządzenie</span>
+    <button class="btn-icon" data-v="desktop" aria-label="Desktop">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Desktop
+    </button>
+    <button class="btn-icon" data-v="tablet" aria-label="Tablet">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></svg>Tablet
+    </button>
+    <button class="btn-icon" data-v="mobile" aria-label="Mobile">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Mobile
+    </button>
+  </div>
+
+  <div class="group">
+    <button class="btn-icon" id="toggleLog" aria-pressed="true" aria-controls="log">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Eventy
+    </button>
+  </div>
+
+  <div class="group">
+    <button class="btn-icon" id="toggleOpts" aria-pressed="true" aria-controls="opts" disabled title="Ta strona nie ma opcji">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Opcje
+    </button>
+  </div>
+
+  <div class="group"><button id="reset">Resetuj</button></div>
+</div>
+
+<div class="stage">
+  <div class="view" id="view"><iframe id="frame" title="Podgląd"></iframe></div>
+  <!-- Right column: options take the height they need, events take the rest -->
+  <div class="panels">
+    <div class="opts" id="opts" role="group" aria-label="Opcje widgetu" hidden>
+      <h3>Opcje</h3>
+      <div class="opts__body" id="optsBody"></div>
+      <div class="opts__total" id="optsTotal" hidden><span>Razem</span><b id="optsTotalValue">0 RBH</b></div>
+    </div>
     <div class="log" id="log" role="log" aria-live="polite"><h3>Eventy</h3></div>
   </div>
+</div>
 
-  <script type="application/json" id="pages-data">{{ pagesJson }}</script>
-  <script src="preview.js"></script>
+<script type="application/json" id="pages-data">{{ pagesJson }}</script>
+<script src="preview.js"></script>
 </body>
 </html>

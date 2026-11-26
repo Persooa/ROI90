@@ -1,0 +1,19 @@
+{
+  "placement": "add-to-cart",
+  "label": "Dodaj do koszyka",
+  "builds": [
+    {
+      "vertical": "home",
+      "widget": "add-to-cart",
+      "frameLabel": "Dodaj do koszyka",
+      "pageTitle": "Dodaj do koszyka | Demo ROI",
+      "pageDescription": "Demo ramki rekomendacyjnej „Kup także” na stronie produktu – wersja desktop i mobile.",
+      "title": "Ostatnio oglądane",
+      "anchor": "NH10597",
+      "pick": ["NH10264", "NH10004", "NH10432", "NH10595", "NH10758", "NH10895", "NH10936"],
+      "autoplay": false,
+      "autoplayMs": 5000,
+      "step": "card"
+    }
+  ]
+}

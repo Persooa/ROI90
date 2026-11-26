@@ -6,11 +6,12 @@
     data-text, data-code-value, data-newsletter-code
     data-end="2026-11-30T23:59:59"  fixed timer end (local time)
     data-duration="7200"            or seconds from the first visit in this session (neither: until midnight)
-    data-demo="on" | "off"          the "Demo" options strip under the bar. Set "off" for the production version.
-  Demo mode also reads / writes URL params: ?timer=0&code=1&newsletter=1&text=...&codeValue=...
+    data-demo="on" | "off"          demo behaviour (the timer starts over when it runs out, the sign-up button stays after subscribing)
+  Options (Timer / Kod / Newsletter / texts) are registered in ROI.options and shown in preview.html ("Opcje").
+  They also read / write URL params: ?timer=0&code=1&newsletter=1&text=...&codeValue=...
   Live changes from code: element.rkBar.update({ timer: true, text: '...' })
   Events (window.track if present, otherwise console.log):
-    bar.view, bar.click, bar.close, code.copy, timer.expired, popup.view, popup.close, newsletter.subscribe
+    bar.view, bar.click, code.copy, timer.expired, popup.view, popup.close, newsletter.subscribe
 */
 (function () {
   var root = document.querySelector('[data-rk-bar="combo"]');
@@ -21,7 +22,7 @@
   // would otherwise trap position:fixed inside itself instead of covering the whole viewport
   document.body.appendChild(popEl);
 
-  var KEY_CLOSED = 'rk_cb_closed', KEY_START = 'rk_cb_start', KEY_SUB = 'rk_cb_subscribed';
+  var KEY_START = 'rk_cb_start', KEY_SUB = 'rk_cb_subscribed';
   var $ = function (sel, ctx) { return (ctx || root).querySelector(sel); };
   var frameEl = $('.rk-cb__frame');
   var textEl = $('[data-rk-text]'), timerWrap = $('[data-rk-timer]'), codeWrap = $('[data-rk-code]');
@@ -38,7 +39,6 @@
 
   var interval = null, end = 0, expired = false, copyTimer = null, popup = null;
   var demo = root.getAttribute('data-demo') === 'on';
-  var demoUi = null;
   var subscribed = !demo && read(KEY_SUB) === '1';   // demo: the sign-up button always stays available
 
   function track(name, data) {
@@ -172,18 +172,6 @@
     track('newsletter.subscribe', { email: value, source: 'bar+popup' });
   });
 
-  // --- Close (in demo mode only the frame is hidden, so the options strip can bring it back) ---
-  function setBarHidden(hidden) {
-    (demo ? frameEl : root).hidden = hidden;
-    if (demoUi) demoUi.restore.hidden = !hidden;
-  }
-  $('[data-rk-close]').addEventListener('click', function () {
-    track('bar.close', { bar: 'combo' });
-    clearInterval(interval);
-    setBarHidden(true);
-    write(KEY_CLOSED, '1');
-  });
-
   // --- Public API for live changes ---
   root.rkBar = {
     update: function (p) {
@@ -200,73 +188,32 @@
     }
   };
 
-  // --- "Demo" options strip ---
-  function mountDemo() {
-    var FEATURES = [['timer', 'Timer', '+2 RBH'], ['code', 'Kod', '+2 RBH'], ['newsletter', 'Newsletter', '+8 RBH']];
-    var box = document.createElement('div');
-    box.className = 'rk-cb__demo';
-    box.innerHTML = '<span class="rk-cb__demo-tag">Demo</span>' + FEATURES.map(function (f) {
-      return '<label data-tip="' + f[2] + '"><input type="checkbox" data-demo-switch="' + f[0] + '"> ' + f[1] + '</label>';
-    }).join('')
-      + '<input type="text" data-demo-text aria-label="Tekst belki" placeholder="Tekst belki">'
-      + '<input type="text" data-demo-code aria-label="Kod rabatowy" placeholder="Kod" maxlength="24">'
-      + '<button type="button" data-demo-restore hidden>Pokaż belkę</button>';
-    // Hang it on the bottom edge of the visible frame: the demo frame (.roi-frame) if there is one, otherwise the bar itself
-    var host = root.closest('.roi-frame') || root;
-    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
-    host.appendChild(box);
-    // Same colour as the frame label, so the tab looks like a part of the frame
-    var label = host.querySelector('.roi-frame__label');
-    if (label) {
-      var bg = getComputedStyle(label).backgroundColor;
-      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') box.style.setProperty('--demo-bg', bg);
+  // --- Demo options: described here, shown by preview.html (core/options.js; nothing is shown on a standalone page) ---
+  function registerOptions() {
+    if (!window.ROI || !ROI.options) {
+      console.warn('[rk-bar] ROI.options is missing: add core/options.js to the build (build.js) to get the "Opcje" window in preview.html');
+      return;
     }
-
-    var textIn = $('[data-demo-text]', box), codeIn = $('[data-demo-code]', box);
-    demoUi = { restore: $('[data-demo-restore]', box) };
-
-    function syncFromAttrs() {
-      FEATURES.forEach(function (f) { $('[data-demo-switch="' + f[0] + '"]', box).checked = on(f[0]); });
-      if (document.activeElement !== textIn) textIn.value = root.getAttribute('data-text') || '';
-      if (document.activeElement !== codeIn) codeIn.value = root.getAttribute('data-code-value') || '';
-    }
-    // Keep the current setup in the URL, so a link shows the same configuration
-    function syncUrl() {
-      try {
-        var u = new URL(location.href);
-        FEATURES.forEach(function (f) { u.searchParams.set(f[0], on(f[0]) ? '1' : '0'); });
-        u.searchParams.set('text', root.getAttribute('data-text') || '');
-        u.searchParams.set('codeValue', root.getAttribute('data-code-value') || '');
-        history.replaceState(null, '', u.toString());
-      } catch (e) { /* e.g. file:// restrictions */ }
-    }
-
-    // Initial state from the URL
-    var q = new URLSearchParams(location.search), patch = {};
-    FEATURES.forEach(function (f) { if (q.has(f[0])) patch[f[0]] = q.get(f[0]) === '1'; });
-    if (q.has('text')) patch.text = q.get('text');
-    if (q.has('codeValue')) patch.codeValue = q.get('codeValue');
-    if (Object.keys(patch).length) root.rkBar.update(patch);
-    syncFromAttrs();
-
-    box.addEventListener('change', function (e) {
-      var key = e.target.getAttribute('data-demo-switch');
-      if (!key) return;
-      var p = {}; p[key] = e.target.checked;
-      root.rkBar.update(p);
-      syncUrl();
-    });
-    textIn.addEventListener('input', function () { root.rkBar.update({ text: textIn.value }); syncUrl(); });
-    codeIn.addEventListener('input', function () { root.rkBar.update({ codeValue: codeIn.value.trim() }); syncUrl(); });
-    demoUi.restore.addEventListener('click', function () {
-      write(KEY_CLOSED, '');
-      setBarHidden(false);
-      armTimer();
+    ROI.options.register({
+      id: 'bar-combo',
+      title: 'Belka',
+      base: { label: 'Standard', rbh: 8 },   // always on; the cost differs per widget
+      fields: [
+        { key: 'timer', type: 'switch', label: 'Timer', rbh: 2, value: on('timer') },
+        { key: 'code', type: 'switch', label: 'Kod', rbh: 2, value: on('code') },
+        { key: 'newsletter', type: 'switch', label: 'Newsletter', rbh: 8, value: on('newsletter') },
+        { key: 'text', type: 'text', label: 'Tekst belki', placeholder: 'Tekst belki', value: root.getAttribute('data-text') || '' },
+        { key: 'codeValue', type: 'text', label: 'Kod rabatowy', placeholder: 'Kod', maxlength: 24, value: root.getAttribute('data-code-value') || '' }
+      ],
+      onChange: function (key, value) {
+        var patch = {};
+        patch[key] = key === 'codeValue' ? String(value).trim() : value;
+        root.rkBar.update(patch);
+      }
     });
   }
 
   apply();
-  if (demo) mountDemo();
-  if (read(KEY_CLOSED) === '1') setBarHidden(true);
-  else track('bar.view', { bar: 'combo', timer: on('timer'), code: on('code'), newsletter: on('newsletter') });
+  registerOptions();
+  track('bar.view', { bar: 'combo', timer: on('timer'), code: on('code'), newsletter: on('newsletter') });
 })();

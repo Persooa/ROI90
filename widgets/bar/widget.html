@@ -1,10 +1,11 @@
 <div class="rk-cb" id="{{widgetId}}" data-rk-bar="combo" data-demo="on"
      data-timer="on" data-code="on" data-newsletter="on"
-     data-text="Tylko dziś: -25% na cały asortyment" data-code-value="SALE25" data-newsletter-code="WELCOME10"
+     data-text="Nie przegap okazji! Zgarnij rabat na wybrane produkty i oszczędzaj już dziś" data-code-value="SALE25" data-newsletter-code="WELCOME10"
      data-duration="7200">
   <div class="rk-cb__frame" role="region" aria-label="{{title}}">
     <!-- text, code and the sign-up button are visible without JS; widget.js only switches them on / off -->
-    <p class="rk-cb__text" data-rk-text>Tylko dziś: -25% na cały asortyment</p>
+    <span class="rk-cb__badge">Sale</span>
+    <p class="rk-cb__text" data-rk-text>Nie przegap okazji! Zgarnij rabat na wybrane produkty i oszczędzaj już dziś</p>
 
     <div class="rk-cb__timer" role="timer" aria-label="Czas do końca promocji" data-rk-timer hidden>
       <span class="rk-cb__timer-label">Koniec za</span>
@@ -22,9 +23,8 @@
       <button class="rk-cb__btn" type="button" data-rk-copy>Kopiuj kod</button>
     </div>
 
-    <button class="rk-cb__btn" type="button" data-rk-open>Zapisz się</button>
+    <button class="rk-cb__btn rk-cb__btn--link" type="button" data-rk-open>Zapisz się &rarr;</button>
 
-    <button class="rk-cb__close" type="button" aria-label="Zamknij belkę" data-rk-close>&times;</button>
     <span class="rk-cb__status" role="status" aria-live="polite"></span>
   </div>
   <!-- the "Demo" options strip is added here by widget.js when data-demo="on" -->

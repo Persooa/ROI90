@@ -46,7 +46,14 @@
   .mk-line { height: 12px; }
   .mk-vars { display: flex; flex-wrap: wrap; gap: 8px; }
   .mk-vars .sk { width: 64px; height: 32px; }
-  .mk-cta { height: 48px; width: 100%; max-width: 360px; }
+  /* CTA: a real, clickable button (theme variables with fallbacks, in case a theme does not define them) */
+  .mk-cta { appearance: none; display: inline-flex; align-items: center; justify-content: center; height: 48px; width: 100%; max-width: 360px;
+    padding: 0 24px; border: 0; border-radius: var(--roi-radius, 6px); cursor: pointer;
+    background: var(--color-primary, #222); color: var(--color-on-primary, #fff);
+    font: 600 var(--font-size-base, 16px)/1 var(--font-body, system-ui, sans-serif); transition: filter .15s, transform .05s; }
+  .mk-cta:hover { filter: brightness(1.15); }
+  .mk-cta:active { transform: translateY(1px); }
+  .mk-cta:focus-visible { outline: 3px solid var(--color-primary, #222); outline-offset: 3px; }
   .mk-desc { display: flex; flex-direction: column; gap: 10px; }
   .mk-desc .sk { height: 10px; }
 
@@ -71,6 +78,53 @@
     .mk-nav { display: flex; }
     .mk-search { display: block; }
   }
+
+  /* ---- Mini cart drawer (opens from the right after the CTA is clicked; ROI.Popup toggles [hidden] + .is-open) ---- */
+  .mk-drawer { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, .45); opacity: 0; transition: opacity .25s; }
+  .mk-drawer[hidden] { display: none; }
+  .mk-drawer.is-open { opacity: 1; }
+  .mk-drawer__panel { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; width: 440px; max-width: 100%;
+    background: #fff; color: var(--color-text, #23272b); box-shadow: -8px 0 32px rgba(0, 0, 0, .25);
+    font-family: var(--font-body, system-ui, sans-serif); transform: translateX(100%); transition: transform .25s; }
+  .mk-drawer.is-open .mk-drawer__panel { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .mk-drawer, .mk-drawer__panel { transition: none; } }
+  :where(.mk-drawer) button { font: inherit; cursor: pointer; }   /* :where keeps specificity low, so the sizes below win */
+
+  .mk-drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: #eee; border-bottom: 1px solid #ccc; }
+  .mk-drawer__title { margin: 0; font-size: 22px; font-weight: 600; }
+  .mk-drawer__x { width: 40px; height: 40px; border: 0; background: none; font-size: 32px; line-height: 1; color: inherit; }
+  .mk-drawer__body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px; }
+
+  .mk-alert { display: flex; align-items: stretch; margin-bottom: 16px; border: 1px solid; border-radius: 4px; overflow: hidden; font-size: 16px; line-height: 1.5; }
+  .mk-alert__ico { display: grid; place-items: center; flex: none; width: 56px; color: #fff; font-size: 26px; font-weight: 700; }
+  .mk-alert__txt { padding: 14px 16px; }
+  .mk-alert--ok { border-color: #55a95f; color: #55a95f; } .mk-alert--ok .mk-alert__ico { background: #55a95f; }
+  .mk-alert--info { border-color: #5ab4d1; color: #5ab4d1; } .mk-alert--info .mk-alert__ico { background: #5ab4d1; }
+
+  .mk-ci { display: grid; grid-template-columns: 72px minmax(0, 1fr) 40px; gap: 4px 14px; padding: 16px 0; border-bottom: 1px solid #ccc; }
+  .mk-ci:last-child { border-bottom: 0; }
+  .mk-ci__img { grid-row: span 2; width: 72px; height: 72px; border: 1px solid #ccc; border-radius: 4px; background: #f3f3f3 center / contain no-repeat; }
+  .mk-ci__name { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
+  .mk-ci__del { grid-column: 3; grid-row: 1; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #e1f0e4; color: #3f9a4d; font-size: 18px; }
+  .mk-ci__del:hover { filter: brightness(.95); }
+  .mk-ci__sum { grid-column: 2 / 4; }
+  .mk-ci__price { display: block; margin-top: 6px; font-size: 24px; font-weight: 700; color: var(--color-text, #23272b); }
+  .mk-ci__price.is-sale { color: #e53e30; }
+  .mk-ci__old { display: block; color: #777; font-size: 14px; font-weight: 600; }
+  .mk-ci__old s { margin-right: 4px; } .mk-ci__old b { color: #e53e30; }
+  .mk-qty { display: inline-flex; margin-top: 10px; border: 1px solid #bbb; border-radius: 999px; overflow: hidden; }
+  .mk-qty button { width: 44px; height: 40px; border: 0; background: #fff; font-size: 20px; color: #555; }
+  .mk-qty button:disabled { color: #bbb; cursor: default; }
+  .mk-qty output { display: grid; place-items: center; width: 44px; border-inline: 1px solid #bbb; font-size: 16px; }
+  .mk-drawer__empty { padding: 32px 0; text-align: center; color: #777; }
+
+  .mk-drawer__foot { padding: 12px 20px 20px; border-top: 1px solid #ccc; }
+  .mk-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 18px; }
+  .mk-row b { font-weight: 700; } .mk-row .is-free { color: #55a95f; }
+  .mk-drawer__go { display: block; width: 100%; height: 56px; margin-top: 12px; border: 0; border-radius: 999px; background: var(--color-cta, #dd6b35); color: #fff;
+    font-size: 22px; font-weight: 700; box-shadow: 0 6px 14px rgba(221, 107, 53, .35); }
+  .mk-drawer__go:hover { filter: brightness(1.08); }
+  .mk-drawer__go:disabled { filter: grayscale(1); opacity: .5; cursor: default; box-shadow: none; }
 </style>
 
 <header class="mk-top roi-bg" aria-hidden="true">
@@ -118,11 +172,11 @@
         <div class="sk sk--strong" style="width:35%;height:22px"></div>
       </div>
 
-      <div class="mk-info__sk roi-bg" aria-hidden="true">
-        <div class="sk mk-line" style="width:25%"></div>
-        <div class="mk-vars"><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div></div>
-        <div class="sk sk--strong mk-cta"></div>
-        <div class="mk-desc">
+      <div class="mk-info__sk roi-bg">
+        <div class="sk mk-line" style="width:25%" aria-hidden="true"></div>
+        <div class="mk-vars" aria-hidden="true"><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div><div class="sk sk--pill"></div></div>
+        <button type="button" class="mk-cta" data-mk-cta data-label="Dodaj do koszyka">Dodaj do koszyka</button>
+        <div class="mk-desc" aria-hidden="true">
           <div class="sk" style="width:95%"></div><div class="sk" style="width:88%"></div>
           <div class="sk" style="width:92%"></div><div class="sk" style="width:60%"></div>
         </div>
@@ -161,3 +215,125 @@
     <div><div class="sk" style="width:70%"></div><div class="sk" style="width:50%"></div><div class="sk" style="width:60%"></div></div>
   </div>
 </footer>
+
+
+<!-- Mini cart drawer: opened by the CTA button; content is built from the anchor product (see script below) -->
+<div class="mk-drawer" id="mkDrawer" hidden>
+  <aside class="mk-drawer__panel" data-popup-dialog aria-labelledby="mkDrawerTitle">
+    <header class="mk-drawer__head">
+      <h2 class="mk-drawer__title" id="mkDrawerTitle">Koszyk (<span data-cart-count>0</span>)</h2>
+      <button type="button" class="mk-drawer__x" data-popup-close aria-label="Zamknij koszyk">&times;</button>
+    </header>
+    <div class="mk-drawer__body">
+      <div class="mk-alert mk-alert--ok" role="status" data-cart-added hidden>
+        <span class="mk-alert__ico" aria-hidden="true">&#10003;</span>
+        <span class="mk-alert__txt">Produkt został pomyślnie dodany do koszyka.</span>
+      </div>
+      <div class="mk-alert mk-alert--info">
+        <span class="mk-alert__ico" aria-hidden="true">i</span>
+        <span class="mk-alert__txt">Dodanie produktów do koszyka nie jest jednoznaczne z ich rezerwacją. Nie zwlekaj z dokończeniem zamówienia!</span>
+      </div>
+      <div data-cart-items></div>
+      <p class="mk-drawer__empty" data-cart-empty hidden>Twój koszyk jest pusty.</p>
+    </div>
+    <footer class="mk-drawer__foot">
+      <div class="mk-row"><span>Suma częściowa</span><b data-cart-total>0,00 zł</b></div>
+      <div class="mk-row"><span>Dostawa</span><b class="is-free">Darmowa</b></div>
+      <button type="button" class="mk-drawer__go" data-cart-checkout>Przejdź do kasy</button>
+    </footer>
+  </aside>
+</div>
+
+<script>
+  // Mini cart demo: the CTA adds the anchor product and opens the drawer (ROI.Popup from core/popup.js, plain toggle as a fallback).
+  // Events (ROI.track, optional): add_to_cart, cart.view, cart.qty_change, cart.remove, cart.checkout_click
+  (function () {
+    var $ = function (sel, root) { return (root || document).querySelector(sel); };
+    var btn = $('[data-mk-cta]'), drawer = $('#mkDrawer');
+    if (!btn || !drawer) return;
+
+    function track(name, data) {
+      try { if (window.ROI && typeof ROI.track === 'function') ROI.track(name, data || {}); } catch (e) { /* tracking is optional */ }
+    }
+
+    // --- Product data from the page: the anchor product, or a neutral demo product when the page has no anchor ---
+    function num(text) { var n = parseFloat(String(text || '').replace(/[^\d,.-]/g, '').replace(',', '.')); return isNaN(n) ? null : n; }
+    function money(n) { return n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '\u00a0zł'; }
+    function readProduct() {
+      var anchored = $('.mk-pdp.has-anchor');
+      var name = anchored && ($('.mk-name') || {}).textContent;
+      var price = anchored ? num(($('.mk-price') || {}).textContent) : null;
+      var img = anchored && $('.mk-gal__main img');
+      return {
+        id: name || 'demo-product',
+        name: (name || 'Produkt demo').trim(),
+        price: price != null ? price : 199,
+        oldPrice: anchored ? num(($('.mk-old') || {}).textContent) : null,
+        discount: anchored ? (($('.mk-disc') || {}).textContent || '').trim() : '',
+        image: img ? img.getAttribute('src') : ''
+      };
+    }
+
+    // --- Cart state ---
+    var items = [];   // { product, qty }
+    var listEl = $('[data-cart-items]'), emptyEl = $('[data-cart-empty]'), addedEl = $('[data-cart-added]');
+    var countEl = $('[data-cart-count]'), totalEl = $('[data-cart-total]'), goBtn = $('[data-cart-checkout]');
+
+    function render() {
+      listEl.textContent = '';
+      items.forEach(function (it, idx) {
+        var p = it.product, el = document.createElement('div');
+        el.className = 'mk-ci';
+        var old = p.oldPrice && p.oldPrice > p.price ? '<span class="mk-ci__old">Cena sugerowana: <s></s><b></b></span>' : '';
+        el.innerHTML = '<div class="mk-ci__img" role="img"></div><h3 class="mk-ci__name"></h3>'
+          + '<button type="button" class="mk-ci__del" data-del aria-label="Usuń produkt z koszyka">&#128465;</button>'
+          + '<div class="mk-ci__sum"><span class="mk-ci__price"></span>' + old
+          + '<div class="mk-qty"><button type="button" data-dec aria-label="Zmniejsz ilość">&minus;</button><output></output>'
+          + '<button type="button" data-inc aria-label="Zwiększ ilość">+</button></div></div>';
+        $('.mk-ci__name', el).textContent = p.name;
+        var img = $('.mk-ci__img', el);
+        if (p.image) img.style.backgroundImage = 'url("' + p.image.replace(/"/g, '%22') + '")';
+        img.setAttribute('aria-label', p.name);
+        var priceEl = $('.mk-ci__price', el);
+        priceEl.textContent = money(p.price * it.qty);
+        if (old) { priceEl.classList.add('is-sale'); $('.mk-ci__old s', el).textContent = money(p.oldPrice * it.qty); $('.mk-ci__old b', el).textContent = p.discount; }
+        $('output', el).textContent = it.qty;
+        $('[data-dec]', el).disabled = it.qty <= 1;
+        $('[data-dec]', el).onclick = function () { it.qty--; track('cart.qty_change', { product_id: p.id, quantity: it.qty }); render(); };
+        $('[data-inc]', el).onclick = function () { it.qty++; track('cart.qty_change', { product_id: p.id, quantity: it.qty }); render(); };
+        $('[data-del]', el).onclick = function () { items.splice(idx, 1); track('cart.remove', { product_id: p.id }); render(); };
+        listEl.appendChild(el);
+      });
+      var count = items.reduce(function (n, it) { return n + it.qty; }, 0);
+      countEl.textContent = count;
+      totalEl.textContent = money(items.reduce(function (sum, it) { return sum + it.product.price * it.qty; }, 0));
+      emptyEl.hidden = items.length > 0;
+      goBtn.disabled = items.length === 0;
+    }
+
+    // --- Drawer: ROI.Popup gives focus trap, Esc, overlay click and scroll lock ---
+    var popup = null;
+    function ensurePopup() {
+      if (popup) return popup;
+      if (window.ROI && ROI.Popup) popup = ROI.Popup(drawer, { initialFocus: '[data-popup-close]' });
+      else {   // fallback without popup.js: plain toggle
+        drawer.addEventListener('click', function (e) { if (e.target === drawer || e.target.closest('[data-popup-close]')) { drawer.classList.remove('is-open'); drawer.hidden = true; } });
+        popup = { open: function () { drawer.hidden = false; requestAnimationFrame(function () { drawer.classList.add('is-open'); }); } };
+      }
+      return popup;
+    }
+
+    btn.addEventListener('click', function () {
+      var p = readProduct(), found = items.filter(function (it) { return it.product.id === p.id; })[0];
+      if (found) found.qty++; else items.push({ product: p, qty: 1 });
+      render();
+      addedEl.hidden = false;
+      track('add_to_cart', { source: 'product_page_mock', product_id: p.id, product_name: p.name });
+      ensurePopup().open();
+      track('cart.view', { items: items.length });
+    });
+    goBtn.addEventListener('click', function () { track('cart.checkout_click', { items: items.length }); });
+
+    render();
+  })();
+</script>
