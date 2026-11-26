@@ -98,14 +98,46 @@ select option:disabled {
   color: #7a828c;
 }
 
-/* Which file is open */
+/* Which file is open: the name is a button that opens a list of all built pages */
 .file {
+  position: relative;
   flex: 1 1 240px;
   min-width: 0;
   display: flex;
   align-items: baseline;
   gap: 10px;
-  overflow: hidden;
+}
+
+.file__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+.file__btn:hover:not(:disabled) {
+  background: none;
+}
+
+.file__btn svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .7;
+  transition: transform .15s;
+}
+
+.file__btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
 .file code {
@@ -120,11 +152,74 @@ select option:disabled {
   text-overflow: ellipsis;
 }
 
-.file span {
+.file__btn:hover code, .file__btn[aria-expanded="true"] code {
+  border-color: #6b7480;
+}
+
+.file > span {
   opacity: .6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.file__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 100;
+  min-width: 380px;
+  max-width: min(560px, 92vw);
+  max-height: 65vh;
+  overflow: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #2b3036;
+  border: 1px solid #4a5159;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
+}
+
+.file__menu[hidden] {
+  display: none;
+}
+
+.file__menu .grp {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .55;
+}
+
+.file__menu .grp:first-child {
+  padding-top: 4px;
+}
+
+.file__menu [role="option"] {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.file__menu [role="option"]:hover, .file__menu [role="option"]:focus-visible {
+  background: #3a4048;
+  outline: 0;
+}
+
+.file__menu [role="option"][aria-selected="true"] {
+  background: #e6e6e6;
+  color: #1f2328;
+}
+
+.file__menu [role="option"] small {
+  font: 11px ui-monospace, Menlo, Consolas, monospace;
+  opacity: .65;
 }
 
 /* ---- Stage: the iframe plus a floating events window ---- */

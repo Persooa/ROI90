@@ -30,6 +30,8 @@
   const fileEl = $('file');
   const titleEl = $('title');
   const themeSel = $('theme');
+  const fileBtn = $('fileBtn');
+  const fileMenu = $('fileMenu');
   const logBtn = $('toggleLog');
   const optsBox = $('opts');
   const optsBody = $('optsBody');
@@ -100,6 +102,74 @@
     if (entry && themeSel.value) go(`${themeSel.value}/${stack[idx].slice(entry.vertical.length + 1)}`);
   });
 
+  // --- File dropdown: click the file name to jump to any built page (the list comes from build.js, like the theme switcher) ---
+  // grouped by vertical (stable sort: the order inside a group stays as in build.js)
+  const menuItems = [
+    { file: HOME, title: 'Lista demo', group: '' },
+    ...pages
+      .map((pg) => ({ file: pg.file, title: pg.title || pg.file, group: pg.vertical }))
+      .sort((x, y) => verticals.indexOf(x.group) - verticals.indexOf(y.group))
+  ];
+
+  function buildMenu() {
+    let lastGroup = null;
+    menuItems.forEach((it) => {
+      if (it.group !== lastGroup && it.group) {
+        const g = document.createElement('li');
+        g.className = 'grp'; g.setAttribute('role', 'presentation');
+        g.textContent = LABELS[it.group] || it.group;
+        fileMenu.append(g);
+      }
+      lastGroup = it.group;
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option'); li.tabIndex = -1; li.dataset.file = it.file;
+      const t = document.createElement('span'); t.textContent = it.title;
+      const f = document.createElement('small'); f.textContent = it.file;
+      li.append(t, f);
+      fileMenu.append(li);
+    });
+  }
+  const options = () => [...fileMenu.querySelectorAll('[role="option"]')];
+
+  function markCurrent(path) {
+    options().forEach((o) => o.setAttribute('aria-selected', String(o.dataset.file === path)));
+  }
+  function openMenu() {
+    fileMenu.hidden = false;
+    fileBtn.setAttribute('aria-expanded', 'true');
+    const cur = options().find((o) => o.getAttribute('aria-selected') === 'true') || options()[0];
+    if (cur) { cur.focus(); cur.scrollIntoView({ block: 'nearest' }); }
+  }
+  function closeMenu(refocus) {
+    if (fileMenu.hidden) return;
+    fileMenu.hidden = true;
+    fileBtn.setAttribute('aria-expanded', 'false');
+    if (refocus) fileBtn.focus();
+  }
+  function choose(li) {
+    closeMenu(true);
+    if (li && li.dataset.file !== stack[idx]) go(li.dataset.file);
+  }
+
+  buildMenu();
+  fileBtn.addEventListener('click', () => (fileMenu.hidden ? openMenu() : closeMenu(true)));
+  fileBtn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(); } });
+  fileMenu.addEventListener('click', (e) => { const li = e.target.closest('[role="option"]'); if (li) choose(li); });
+  fileMenu.addEventListener('keydown', (e) => {
+    const list = options(), i = list.indexOf(document.activeElement);
+    const focusAt = (n) => { e.preventDefault(); const o = list[Math.max(0, Math.min(list.length - 1, n))]; if (o) { o.focus(); o.scrollIntoView({ block: 'nearest' }); } };
+    if (e.key === 'ArrowDown') focusAt(i + 1);
+    else if (e.key === 'ArrowUp') focusAt(i - 1);
+    else if (e.key === 'Home') focusAt(0);
+    else if (e.key === 'End') focusAt(list.length - 1);
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(document.activeElement.closest('[role="option"]')); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+    else if (e.key === 'Tab') closeMenu(false);
+  });
+  document.addEventListener('pointerdown', (e) => { if (!fileMenu.hidden && !$('fileInfo').contains(e.target)) closeMenu(false); });
+  // a click inside the frame is not seen by this document: close the menu when the frame takes focus
+  window.addEventListener('blur', () => closeMenu(false));
+
   // --- The frame loaded a page ---
   function onLoad() {
     clearOptions();   // the new page registers its own options (it answers the "hello" below)
@@ -128,6 +198,7 @@
     titleEl.textContent = byFile[path] ? byFile[path].title : (path === HOME ? 'Lista demo' : '');
     document.title = `Preview – ${path}`;
     refreshTheme(path);
+    markCurrent(path);
     state.page = path;
     writeHash();
   }
