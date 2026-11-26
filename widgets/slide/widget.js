@@ -203,10 +203,10 @@
     ROI.options.register({
       id: WIDGET,
       title: 'Slide widget',
-      base: {label: 'Standard', rbh: 8},   // placeholder values: set the real RBH per option
+      base: {label: 'Standard', rbh: 0},   // placeholder values: set the real RBH per option
       fields: [
-        {key: 'name', type: 'switch', label: 'Pole „Imię”', rbh: 1, value: on('name')},
-        {key: 'autoOpen', type: 'switch', label: 'Auto-otwarcie', rbh: 2, value: on('auto-open')},
+        {key: 'name', type: 'switch', label: 'Pole „Imię”', rbh: 0, value: on('name')},
+        {key: 'autoOpen', type: 'switch', label: 'Auto-otwarcie', rbh: 0, value: on('auto-open')},
         {
           key: 'delay',
           type: 'number',

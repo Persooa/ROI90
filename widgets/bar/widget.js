@@ -197,11 +197,11 @@
     ROI.options.register({
       id: 'bar-combo',
       title: 'Belka',
-      base: { label: 'Standard', rbh: 8 },   // always on; the cost differs per widget
+      base: { label: 'Standard', rbh: 0 },   // always on; the cost differs per widget
       fields: [
-        { key: 'timer', type: 'switch', label: 'Timer', rbh: 2, value: on('timer') },
-        { key: 'code', type: 'switch', label: 'Kod', rbh: 2, value: on('code') },
-        { key: 'newsletter', type: 'switch', label: 'Newsletter', rbh: 8, value: on('newsletter') },
+        { key: 'timer', type: 'switch', label: 'Timer', rbh: 0, value: on('timer') },
+        { key: 'code', type: 'switch', label: 'Kod', rbh: 0, value: on('code') },
+        { key: 'newsletter', type: 'switch', label: 'Newsletter', rbh: 0, value: on('newsletter') },
         { key: 'text', type: 'text', label: 'Tekst belki', placeholder: 'Tekst belki', value: root.getAttribute('data-text') || '' },
         { key: 'codeValue', type: 'text', label: 'Kod rabatowy', placeholder: 'Kod', maxlength: 24, value: root.getAttribute('data-code-value') || '' }
       ],
