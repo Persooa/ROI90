@@ -1,0 +1,46 @@
+<!-- Slide widget: a fixed tab on the screen edge, vertically centred. Collapsed by default; the tab opens a newsletter panel.
+     Options are set with data-* attributes (see widget.js) and in the "Opcje" window of the preview. -->
+<aside class="rk-sl" id="{{widgetId}}" data-rk-slide data-demo="on" data-side="right"
+       data-name="on" data-auto-open="off" data-delay="5" data-exit-intent="off"
+       data-title="Dołącz do naszego newslettera i otrzymaj 20% rabatu" data-tab-text="Zapisz się do newslettera" data-code="WELCOME20"
+       aria-label="{{title}}">
+  <div class="rk-sl__tab">
+    <button type="button" class="rk-sl__dismiss" data-sl-dismiss aria-label="Zamknij widget">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <button type="button" class="rk-sl__toggle" data-sl-toggle aria-expanded="false" aria-controls="{{widgetId}}-panel">
+      <span class="rk-sl__label" data-sl-tab-text>Zapisz się do newslettera</span>
+      <svg class="rk-sl__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+  </div>
+
+  <div class="rk-sl__panel" id="{{widgetId}}-panel" role="region" aria-label="Zapis do newslettera" inert>
+    <div class="rk-sl__inner">
+      <button type="button" class="rk-sl__x" data-sl-close aria-label="Zwiń panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+
+      <div data-sl-view="form">
+        <h2 class="rk-sl__title" data-sl-title>Dołącz do naszego newslettera i otrzymaj 20% rabatu</h2>
+        <form novalidate>
+          <input class="rk-sl__input" type="text" name="name" placeholder="Imię" autocomplete="given-name" aria-label="Imię" data-sl-name>
+          <input class="rk-sl__input" type="email" name="email" placeholder="E-mail" autocomplete="email" aria-label="E-mail">
+          <label class="rk-sl__consent">
+            <input type="checkbox" name="consent">
+            <span>Chcę odebrać kod rabatowy oraz otrzymywać informacje na temat promocji i porad.</span>
+          </label>
+          <p class="rk-sl__note">Więcej informacji na temat przetwarzania danych znajdziesz w naszej <a href="#" data-sl-privacy>Polityce Prywatności</a>.</p>
+          <p class="rk-sl__error" role="alert"></p>
+          <button class="rk-sl__submit" type="submit">Odbieram rabat</button>
+        </form>
+      </div>
+
+      <div data-sl-view="done" hidden>
+        <h2 class="rk-sl__title">Dziękujemy za zapis!</h2>
+        <p class="rk-sl__lead">Twój kod rabatowy:</p>
+        <div class="rk-sl__code" data-sl-code></div>
+        <p class="rk-sl__note">Wysłaliśmy go także na <span data-sl-sent-to></span>.</p>
+      </div>
+    </div>
+  </div>
+</aside>

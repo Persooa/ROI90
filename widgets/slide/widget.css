@@ -1,0 +1,314 @@
+/* widgets/slide-newsletter – fixed side tab (collapsed) + newsletter panel (expanded). Theme variables with fallbacks. */
+.rk-sl, .rk-sl * {
+  box-sizing: border-box;
+}
+
+.rk-sl [hidden] {
+  display: none !important;
+}
+
+.rk-sl[hidden] {
+  display: none !important;
+}
+
+.rk-sl {
+  --sl-bg: var(--rk-slide-bg, #000);
+  --sl-fg: #fff;
+  --sl-w: 56px;
+  --sl-panel-w: min(420px, calc(100vw - var(--sl-w)));
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  max-height: calc(100vh - 16px);
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: var(--font-size-base, 16px);
+  color: #111;
+}
+
+.rk-sl[data-side="left"] {
+  right: auto;
+  left: 0;
+  flex-direction: row-reverse;
+}
+
+/* ---- Tab: the black strip. X and chevron share one column and one centre line ---- */
+.rk-sl__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: var(--sl-w);
+  padding: 10px 0;
+  background: var(--sl-bg);
+  color: var(--sl-fg);
+  border-radius: 14px 0 0 14px;
+}
+
+.rk-sl[data-side="left"] .rk-sl__tab {
+  border-radius: 0 14px 14px 0;
+}
+
+.rk-sl[data-open="on"] .rk-sl__dismiss {
+  display: none;
+}
+
+.rk-sl[data-open="on"] .rk-sl__tab {
+  justify-content: flex-end;
+}
+
+.rk-sl__dismiss, .rk-sl__toggle, .rk-sl__x {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rk-sl__dismiss {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.rk-sl__toggle {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  min-height: 0;
+  padding: 10px 0 4px;
+}
+
+.rk-sl[data-open="on"] .rk-sl__toggle {
+  flex: 0 1 auto;
+}
+
+.rk-sl__dismiss svg, .rk-sl__x svg, .rk-sl__chev {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Chevron points to the side the panel opens to; it turns around when the panel is open */
+.rk-sl__chev {
+  transition: transform .25s;
+}
+
+.rk-sl[data-open="on"] .rk-sl__chev {
+  transform: scaleX(-1);
+}
+
+.rk-sl[data-side="left"] .rk-sl__chev {
+  transform: scaleX(-1);
+}
+
+.rk-sl[data-side="left"][data-open="on"] .rk-sl__chev {
+  transform: none;
+}
+
+/* Vertical label, read from the bottom to the top */
+.rk-sl__label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-family: var(--font-heading, inherit);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.rk-sl__dismiss:hover, .rk-sl__toggle:hover {
+  opacity: .8;
+}
+
+.rk-sl :is(button, a, input):focus-visible {
+  outline: 2px solid #4f7cff;
+  outline-offset: 2px;
+}
+
+.rk-sl__tab :focus-visible {
+  outline-color: #fff;
+}
+
+/* ---- Panel: slides out of the tab (width animation; the content keeps its own fixed width) ---- */
+.rk-sl__panel {
+  width: 0;
+  overflow: hidden;
+  visibility: hidden;
+  background: #fff;
+  border: 1px solid var(--sl-bg);
+  border-left: 0;
+  transition: width .3s ease, visibility 0s .3s;
+}
+
+.rk-sl[data-side="left"] .rk-sl__panel {
+  border-left: 1px solid var(--sl-bg);
+  border-right: 0;
+}
+
+.rk-sl[data-open="on"] .rk-sl__panel {
+  width: var(--sl-panel-w);
+  visibility: visible;
+  transition: width .3s ease, visibility 0s;
+}
+
+.rk-sl__inner {
+  position: relative;
+  width: var(--sl-panel-w);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  padding: 56px 28px 24px;
+}
+
+.rk-sl__x {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #111;
+}
+
+.rk-sl__title {
+  margin: 0 0 22px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: var(--font-heading, inherit);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rk-sl__lead {
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.rk-sl__input {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin: 0 0 12px;
+  padding: 0 16px;
+  font: inherit;
+  color: #111;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+.rk-sl__input::placeholder {
+  color: #999;
+}
+
+.rk-sl__consent {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 20px 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rk-sl__consent input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: #222;
+}
+
+.rk-sl__note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #777;
+  text-align: left;
+}
+
+.rk-sl__note a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.rk-sl__error {
+  min-height: 18px;
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #c62828;
+}
+
+.rk-sl__submit {
+  display: block;
+  width: 100%;
+  height: 50px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--rk-slide-action, #222);
+  color: #fff;
+  font: 700 17px/1 var(--font-heading, inherit);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.rk-sl__submit:hover {
+  filter: brightness(1.25);
+}
+
+.rk-sl__code {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 4px auto 16px;
+  padding: 10px 22px;
+  border: 2px dashed #222;
+  font: 700 22px ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: .1em;
+}
+
+[data-sl-view="done"] .rk-sl__note {
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-sl__panel, .rk-sl__chev {
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .rk-sl {
+    --sl-w: 48px;
+  }
+
+  .rk-sl__label {
+    font-size: 15px;
+  }
+
+  .rk-sl__inner {
+    padding: 52px 18px 18px;
+  }
+}
