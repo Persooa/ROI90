@@ -53,10 +53,10 @@ button:focus-visible, select:focus-visible {
   outline-offset: 1px;
 }
 
+/* no font-weight change here: a bolder label would widen the button and shift its neighbours */
 button[aria-pressed="true"] {
   background: #e6e6e6;
   color: #1f2328;
-  font-weight: 600;
 }
 
 button:disabled, select:disabled {
@@ -306,9 +306,11 @@ iframe {
   outline-offset: 1px;
 }
 
-.opt--switch:has(input:checked) > span {
-  font-weight: 600;
+.opt--switch:not(:has(input:checked)) > span {
+  opacity: .6;
 }
+
+/* dim instead of bold: the width stays the same */
 
 .opts__body {
   flex: 1;

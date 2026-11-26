@@ -17,7 +17,7 @@
   --roi-accent: #2348e0;
   --roi-accent-text: #ffffff;
   --roi-highlight-width: 2px;
-  --roi-highlight-offset: 6px;     /* gap between the frame edge and the line (mobile) */
+  --roi-highlight-offset: 6px; /* gap between the frame edge and the line (mobile) */
 
   /* Frame (the widget's own box) */
   --roi-frame-border-width: 1px;
@@ -26,7 +26,9 @@
 }
 
 @media (min-width: 640px) {
-  :root { --roi-highlight-offset: 10px; }
+  :root {
+    --roi-highlight-offset: 10px;
+  }
 }
 
 /* Mock container */
@@ -43,11 +45,26 @@
 }
 
 /* Skeleton blocks */
-.sk { background: var(--roi-skeleton); border-radius: 6px; }
-.sk--strong { background: var(--roi-skeleton-strong); }
-.sk--surface { background: var(--roi-skeleton-surface); }
-.sk--pill { border-radius: 999px; }
-.sk--round { border-radius: 50%; }
+.sk {
+  background: var(--roi-skeleton);
+  border-radius: 6px;
+}
+
+.sk--strong {
+  background: var(--roi-skeleton-strong);
+}
+
+.sk--surface {
+  background: var(--roi-skeleton-surface);
+}
+
+.sk--pill {
+  border-radius: 999px;
+}
+
+.sk--round {
+  border-radius: 50%;
+}
 
 /* Frame: the widget in its normal look */
 .roi-frame {
@@ -94,5 +111,7 @@
 }
 
 @media (min-width: 640px) {
-  .roi-frame { padding: var(--space-6) var(--space-5) var(--space-5); }
+  .roi-frame {
+    padding: var(--space-6) var(--space-5) var(--space-5);
+  }
 }

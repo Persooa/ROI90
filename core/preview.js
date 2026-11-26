@@ -7,20 +7,17 @@
     - shows which file is open
     - theme dropdown = the same page in another vertical (home / fashion / ...)
     - device: desktop / tablet / mobile; floating events window with a show / hide toggle
-    State (page, device, events) lives in the URL hash: preview.html#page=home/x.html&device=mobile&events=0
+    State (page, device, events) lives in the URL hash: preview.html#page=home/x.html&device=mobile&events=1
     Reading the frame needs the same origin (a server or GitHub Pages; file:// is blocked by the browser).
   */
 
   const HOME = 'index.html';
-  const LABELS = {home: 'Home', fashion: 'Fashion', electronics: 'Elektronika', beauty: 'Beauty'};
+  const LABELS = { home: 'Home', fashion: 'Fashion', electronics: 'Elektronika', beauty: 'Beauty' };
   const DEVICES = ['desktop', 'tablet', 'mobile'];
 
   // --- Page list injected by build.js ---
   let pages = [];
-  try {
-    pages = JSON.parse(document.getElementById('pages-data').textContent) || [];
-  } catch { /* no list: theme switcher stays off */
-  }
+  try { pages = JSON.parse(document.getElementById('pages-data').textContent) || []; } catch { /* no list: theme switcher stays off */ }
   const byFile = Object.fromEntries(pages.map((pg) => [pg.file, pg]));
   const verticals = [...new Set(pages.map((pg) => pg.vertical))];
 
@@ -41,14 +38,12 @@
   const optsTotalValue = $('optsTotalValue');
 
   // --- State (from the URL hash) ---
-  const state = {page: HOME, device: 'desktop', events: '1', opts: '1'};
-  new URLSearchParams(location.hash.slice(1)).forEach((v, k) => {
-    if (k in state) state[k] = v;
-  });
+  const state = { page: HOME, device: 'desktop', events: '0', opts: '1' };   // events are hidden by default
+  new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in state) state[k] = v; });
   // The hash is user input: accept only a relative .html path inside dist
   if (!/^[\w\-./]+\.html$/.test(state.page) || state.page.includes('..') || state.page.startsWith('/')) state.page = HOME;
   if (!DEVICES.includes(state.device)) state.device = 'desktop';
-  if (state.events !== '0') state.events = '1';
+  if (state.events !== '1') state.events = '0';
   if (state.opts !== '0') state.opts = '1';
 
   const writeHash = () => history.replaceState(null, '', '#' + new URLSearchParams(state).toString());
@@ -65,9 +60,7 @@
       const base = baseDir();
       rel = rel.startsWith(base) ? rel.slice(base.length) : rel.replace(/^\//, '');
       return rel === '' || rel.endsWith('/') ? rel + HOME : rel;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   // Own history stack, so the buttons know whether there is anything to go back / forward to
@@ -76,30 +69,18 @@
   let pending = null; // 'back' | 'forward' while a button-driven navigation is loading
 
   function go(path) {
-    try {
-      frame.contentWindow.location.assign(baseDir() + path);
-    } catch {
-      frame.src = path;
-    }
+    try { frame.contentWindow.location.assign(baseDir() + path); } catch { frame.src = path; }
   }
 
   backBtn.addEventListener('click', () => {
     if (idx <= 0) return;
     pending = 'back';
-    try {
-      frame.contentWindow.history.back();
-    } catch {
-      pending = null;
-    }
+    try { frame.contentWindow.history.back(); } catch { pending = null; }
   });
   fwdBtn.addEventListener('click', () => {
     if (idx >= stack.length - 1) return;
     pending = 'forward';
-    try {
-      frame.contentWindow.history.forward();
-    } catch {
-      pending = null;
-    }
+    try { frame.contentWindow.history.forward(); } catch { pending = null; }
   });
 
   // --- Theme dropdown: the same page in another vertical ---
@@ -114,7 +95,6 @@
     // A vertical is available only if the same file was built for it
     for (const opt of themeSel.options) opt.disabled = !!opt.value && !byFile[`${opt.value}/${rest}`];
   }
-
   themeSel.addEventListener('change', () => {
     const entry = byFile[stack[idx]];
     if (entry && themeSel.value) go(`${themeSel.value}/${stack[idx].slice(entry.vertical.length + 1)}`);
@@ -123,10 +103,7 @@
   // --- The frame loaded a page ---
   function onLoad() {
     clearOptions();   // the new page registers its own options (it answers the "hello" below)
-    try {
-      frame.contentWindow.postMessage({rkOptions: 'hello'}, '*');
-    } catch { /* frame unreachable */
-    }
+    try { frame.contentWindow.postMessage({ rkOptions: 'hello' }, '*'); } catch { /* frame unreachable */ }
     const path = framePath();
     if (path === null) {
       // unreadable frame (file://): show the address we set, no history tracking
@@ -154,7 +131,6 @@
     state.page = path;
     writeHash();
   }
-
   frame.addEventListener('load', onLoad);
 
   // --- Device, events window ---
@@ -173,31 +149,15 @@
   }
 
   document.querySelectorAll('.group[data-group="device"] button').forEach((b) => {
-    b.addEventListener('click', () => {
-      state.device = b.getAttribute('data-v');
-      render();
-    }); // only resizes the frame
+    b.addEventListener('click', () => { state.device = b.getAttribute('data-v'); render(); }); // only resizes the frame
   });
-  logBtn.addEventListener('click', () => {
-    state.events = state.events === '1' ? '0' : '1';
-    render();
-  });
-  optsBtn.addEventListener('click', () => {
-    state.opts = state.opts === '1' ? '0' : '1';
-    render();
-  });
+  logBtn.addEventListener('click', () => { state.events = state.events === '1' ? '0' : '1'; render(); });
+  optsBtn.addEventListener('click', () => { state.opts = state.opts === '1' ? '0' : '1'; render(); });
 
   // Reset: forget the session state of the demos (closed bar, timer start, ...) and reload the page
   $('reset').addEventListener('click', () => {
-    try {
-      sessionStorage.clear();
-    } catch { /* storage unavailable */
-    }
-    try {
-      frame.contentWindow.location.reload();
-    } catch {
-      frame.src = frame.src;
-    }
+    try { sessionStorage.clear(); } catch { /* storage unavailable */ }
+    try { frame.contentWindow.location.reload(); } catch { frame.src = frame.src; }
   });
 
   // --- Options window: sections described by core/options.js inside the frame (any widget, any field set) ---
@@ -213,19 +173,12 @@
     text.textContent = base.label || 'Standard';
     const cost = Number.isFinite(Number(base.rbh)) ? `${fmt(base.rbh)} RBH` : '';
     const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.className = 'sw';
-    input.checked = true;
-    input.disabled = true;
+    input.type = 'checkbox'; input.className = 'sw'; input.checked = true; input.disabled = true;
     input.setAttribute('role', 'switch');
     input.setAttribute('aria-label', `${text.textContent} (zawsze włączone)`);
     wrap.title = 'Zawsze włączone';
     wrap.append(text);
-    if (cost) {
-      const s = document.createElement('small');
-      s.textContent = cost;
-      wrap.append(s);
-    }
+    if (cost) { const s = document.createElement('small'); s.textContent = cost; wrap.append(s); }
     wrap.append(input);
     return wrap;
   }
@@ -234,14 +187,8 @@
   function updateTotal() {
     let total = 0, any = false;
     sectionEls.forEach((sec) => {
-      if (sec.base) {
-        total += sec.base;
-        any = true;
-      }
-      Object.entries(sec.costs).forEach(([k, cost]) => {
-        any = true;
-        if (sec.inputs[k] && sec.inputs[k].checked) total += cost;
-      });
+      if (sec.base) { total += sec.base; any = true; }
+      Object.entries(sec.costs).forEach(([k, cost]) => { any = true; if (sec.inputs[k] && sec.inputs[k].checked) total += cost; });
     });
     optsTotal.hidden = !any;
     optsTotalValue.textContent = `${fmt(total)} RBH`;
@@ -255,10 +202,7 @@
   }
 
   const sendSet = (id, key, value) => {
-    try {
-      frame.contentWindow.postMessage({rkOptions: 'set', id, key, value}, '*');
-    } catch { /* frame unreachable */
-    }
+    try { frame.contentWindow.postMessage({ rkOptions: 'set', id, key, value }, '*'); } catch { /* frame unreachable */ }
   };
 
   function buildField(id, f, inputs) {
@@ -275,10 +219,7 @@
     } else {
       input = document.createElement('input');
       input.type = f.type === 'switch' ? 'checkbox' : f.type === 'number' ? 'number' : 'text';
-      if (f.type === 'switch') {
-        input.className = 'sw';
-        input.setAttribute('role', 'switch');
-      }
+      if (f.type === 'switch') { input.className = 'sw'; input.setAttribute('role', 'switch'); }
       if (f.placeholder) input.placeholder = f.placeholder;
       if (f.maxlength) input.maxLength = f.maxlength;
       if (f.min != null) input.min = f.min;
@@ -294,11 +235,7 @@
     // switch: label, cost, [toggle on the right]; others: label [input]
     if (f.type === 'switch') {
       wrap.append(text);
-      if (cost) {
-        const s = document.createElement('small');
-        s.textContent = cost;
-        wrap.append(s);
-      }
+      if (cost) { const s = document.createElement('small'); s.textContent = cost; wrap.append(s); }
       wrap.append(input);
     } else wrap.append(text, input);
     return wrap;
@@ -318,9 +255,7 @@
     el.append(h);
     const inputs = {};
     if (msg.base && typeof msg.base === 'object') el.append(buildBase(msg.base));
-    msg.fields.forEach((f) => {
-      if (f && f.key) el.append(buildField(msg.id, f, inputs));
-    });
+    msg.fields.forEach((f) => { if (f && f.key) el.append(buildField(msg.id, f, inputs)); });
     optsBody.append(el);
     sectionEls.set(msg.id, {
       el, inputs,
@@ -335,9 +270,7 @@
   function showValues(msg) {
     const sec = sectionEls.get(msg.id);
     if (!sec) return;
-    Object.entries(msg.values || {}).forEach(([k, v]) => {
-      if (sec.inputs[k]) setInputValue(sec.inputs[k], sec.types[k], v);
-    });
+    Object.entries(msg.values || {}).forEach(([k, v]) => { if (sec.inputs[k]) setInputValue(sec.inputs[k], sec.types[k], v); });
     updateTotal();
   }
 
