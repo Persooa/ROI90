@@ -7,7 +7,7 @@
     - shows which file is open
     - theme dropdown = the same page in another vertical (home / fashion / ...)
     - device: desktop / tablet / mobile; floating events window with a show / hide toggle
-    State (page, device, events) lives in the URL hash: index.html#page=home/x.html&device=mobile&events=1
+    State (page, device, events) lives in the URL hash: index.html#page=home/x.html&device=mobile&events=1&opts=1
     Reading the frame needs the same origin (a server or GitHub Pages; file:// is blocked by the browser).
   */
 
@@ -40,13 +40,13 @@
   const optsTotalValue = $('optsTotalValue');
 
   // --- State (from the URL hash) ---
-  const state = { page: HOME, device: 'desktop', events: '0', opts: '1' };   // events are hidden by default
+  const state = { page: HOME, device: 'desktop', events: '0', opts: '0' };   // events and options are hidden by default
   new URLSearchParams(location.hash.slice(1)).forEach((v, k) => { if (k in state) state[k] = v; });
   // The hash is user input: accept only a relative .html path inside dist
   if (!/^[\w\-./]+\.html$/.test(state.page) || state.page.includes('..') || state.page.startsWith('/')) state.page = HOME;
   if (!DEVICES.includes(state.device)) state.device = 'desktop';
   if (state.events !== '1') state.events = '0';
-  if (state.opts !== '0') state.opts = '1';
+  if (state.opts !== '1') state.opts = '0';
 
   const writeHash = () => history.replaceState(null, '', '#' + new URLSearchParams(state).toString());
 
