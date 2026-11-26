@@ -84,7 +84,7 @@ function copyDir(src, dest) {
 }
 
 // --- Index + preview pages ----------------------------------------------
-// Files from core/ copied next to dist/index.html (styles, logo, preview script)
+// Files from core/ copied next to dist/index.html (preview) and dist/list.html (styles, logo, preview script)
 const SITE_ASSETS = ['index.css', 'logo.svg', 'preview.css', 'preview.js'];
 
 // Readable vertical names for the index page; unknown verticals fall back to their slug
@@ -95,9 +95,9 @@ function describeBuild(r) {
   return `${VERTICAL_LABELS[r.vertical] || r.vertical} · ${r.placementLabel || r.placement}`;
 }
 
-// Injects `value` into the {{ key }} placeholder of core/<name> and writes the result to dist/<name>.
+// Injects `value` into the {{ key }} placeholder of core/<name> and writes the result to dist/<outName> (default: the same name).
 // Only data is injected; all markup, styling and behaviour live in core/.
-function renderTemplate(name, key, value) {
+function renderTemplate(name, key, value, outName = name) {
   const tplFile = p('core', name);
   if (!fs.existsSync(tplFile)) throw new Error(`brak szablonu core/${name} (template missing)`);
   const tpl = read(tplFile);
@@ -106,22 +106,22 @@ function renderTemplate(name, key, value) {
   if (!placeholder.test(tpl)) throw new Error(`core/${name} nie zawiera znacznika {{ ${key} }} (placeholder missing)`);
 
   // Replacer function, so "$" characters in the value are never treated as patterns
-  fs.writeFileSync(path.join(DIST, name), tpl.replace(placeholder, () => value));
+  fs.writeFileSync(path.join(DIST, outName), tpl.replace(placeholder, () => value));
 }
 
-// dist/index.html: list of links to all built pages
+// dist/list.html: list of links to all built pages (template core/index.html)
 function renderIndex(results) {
   const list = results
     .map((r) => `<li><a href="${escapeHtml(r.file)}">${escapeHtml(r.title)}</a> <small>${escapeHtml(describeBuild(r))}</small></li>`)
     .join('\n      ');
-  renderTemplate('index.html', 'list', list);
+  renderTemplate('index.html', 'list', list, 'list.html');
 }
 
-// dist/preview.html: opens index.html first and follows links from there;
+// dist/index.html = the preview (template core/preview.html): opens list.html first and follows links from there;
 // it gets the page list as JSON (titles, and the theme switcher moves between verticals)
 function renderPreview(results) {
   const pages = results.map((r) => ({ file: r.file, title: r.title, vertical: r.vertical, placement: r.placement, widget: r.widget }));
-  renderTemplate('preview.html', 'pagesJson', scriptJson(pages));
+  renderTemplate('preview.html', 'pagesJson', scriptJson(pages), 'index.html');
 }
 
 function copySiteAssets() {
@@ -450,17 +450,17 @@ function build() {
     if (n) console.log(`✓ ${v}/img  (${n} plików)`);
   }
 
-  // Link index + .nojekyll for GitHub Pages
+  // List + preview pages + .nojekyll for GitHub Pages
   try {
     renderIndex(results);
   } catch (e) {
-    console.error(`✗ index.html: ${e.message}`);
+    console.error(`✗ list.html: ${e.message}`);
     process.exitCode = 1;
   }
   try {
     renderPreview(results);
   } catch (e) {
-    console.error(`✗ preview.html: ${e.message}`);
+    console.error(`✗ index.html (preview): ${e.message}`);
     process.exitCode = 1;
   }
   copySiteAssets();
@@ -491,7 +491,7 @@ function serve() {
     });
   }).listen(PORT, () => {
     console.log(`\nSerwer (server): http://localhost:${PORT}/`);
-    console.log(`Preview: http://localhost:${PORT}/preview.html`);
+    console.log(`Preview: http://localhost:${PORT}/  (list of pages: /list.html)`);
     console.log(`Widget: http://localhost:${PORT}/home/home-page__last-seen.html?lead=test`);
   });
 }

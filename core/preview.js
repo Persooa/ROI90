@@ -2,16 +2,16 @@
   'use strict';
 
   /*
-    preview.html: opens index.html first, then follows the links inside the frame.
+    index.html (the preview): opens list.html first, then follows the links inside the frame.
     - back / forward buttons with their own history stack (enabled / disabled state)
     - shows which file is open
     - theme dropdown = the same page in another vertical (home / fashion / ...)
     - device: desktop / tablet / mobile; floating events window with a show / hide toggle
-    State (page, device, events) lives in the URL hash: preview.html#page=home/x.html&device=mobile&events=1
+    State (page, device, events) lives in the URL hash: index.html#page=home/x.html&device=mobile&events=1
     Reading the frame needs the same origin (a server or GitHub Pages; file:// is blocked by the browser).
   */
 
-  const HOME = 'index.html';
+  const HOME = 'list.html';   // the list of pages; this preview itself is index.html
   const LABELS = { home: 'Home', fashion: 'Fashion', electronics: 'Elektronika', beauty: 'Beauty' };
   const DEVICES = ['desktop', 'tablet', 'mobile'];
 
@@ -53,7 +53,7 @@
   // --- Frame location ---
   const baseDir = () => location.pathname.replace(/[^/]*$/, '');
 
-  // Path of the page open in the frame, relative to preview.html; null when the frame is unreadable (file://)
+  // Path of the page open in the frame, relative to this page; null when the frame is unreadable (file://)
   function framePath() {
     try {
       const loc = frame.contentWindow.location;
@@ -93,7 +93,7 @@
     const entry = byFile[path];
     const rest = entry ? path.slice(entry.vertical.length + 1) : '';
     themeSel.value = entry ? entry.vertical : '';
-    themeSel.disabled = !entry; // index.html and unknown files have no theme
+    themeSel.disabled = !entry; // list.html and unknown files have no theme
     // A vertical is available only if the same file was built for it
     for (const opt of themeSel.options) opt.disabled = !!opt.value && !byFile[`${opt.value}/${rest}`];
   }
