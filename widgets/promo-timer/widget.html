@@ -1,0 +1,29 @@
+<!-- Promo box: countdown + discount code to copy. Desktop: text on the left, timer on the right; narrow container: one column.
+     Options: data-* attributes (see widget.js) and the "Opcje" window of the preview. -->
+<div class="rk-pt" id="{{widgetId}}" data-rk-promo data-timer="on" data-code="on" data-demo="on"
+     data-end="" data-code-value="MAJ18" data-text="Do końca promocji pozostało">
+  <div class="rk-pt__box">
+    <div class="rk-pt__info">
+      <p class="rk-pt__text" data-pt-text>Do końca promocji pozostało</p>
+
+      <div class="rk-pt__code" data-pt-code>
+        <button type="button" class="rk-pt__copy" data-pt-copy aria-label="Skopiuj kod rabatowy">
+          <span class="rk-pt__copy-label" data-pt-copy-label>Skopiuj kod</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="11" height="14" rx="1.5"/><path d="M5 7v13.5h11"/></svg>
+        </button>
+        <span class="rk-pt__code-line"><b data-pt-code-value>MAJ18</b> <span data-pt-code-tail>i ciesz się zniżką</span></span>
+      </div>
+      <span class="rk-pt__status" role="status" aria-live="polite" data-pt-status></span>
+    </div>
+
+    <div class="rk-pt__timer" role="timer" aria-label="Czas do końca promocji" data-pt-timer>
+      <div class="rk-pt__seg"><b data-seg="d">0</b><small>dni</small></div>
+      <span class="rk-pt__sep" aria-hidden="true">:</span>
+      <div class="rk-pt__seg"><b data-seg="h">0</b><small>godzin</small></div>
+      <span class="rk-pt__sep" aria-hidden="true">:</span>
+      <div class="rk-pt__seg"><b data-seg="m">0</b><small>minut</small></div>
+      <span class="rk-pt__sep" aria-hidden="true">:</span>
+      <div class="rk-pt__seg"><b data-seg="s">0</b><small>sekund</small></div>
+    </div>
+  </div>
+</div>

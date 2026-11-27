@@ -72,7 +72,7 @@
   --roi-hl-outset: calc(var(--roi-frame-border-width) + var(--roi-highlight-offset) + var(--roi-highlight-width));
   position: relative;
   margin: var(--space-6) 0;
-  padding: var(--space-5) var(--space-3);
+  padding: var(--space-3);
   background: var(--color-bg);
   border: var(--roi-frame-border-width) solid var(--color-border);
   border-radius: var(--roi-frame-radius);
@@ -112,6 +112,6 @@
 
 @media (min-width: 640px) {
   .roi-frame {
-    padding: var(--space-6) var(--space-5) var(--space-5);
+    padding: var(--space-5);
   }
 }

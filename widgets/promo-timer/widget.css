@@ -1,0 +1,188 @@
+/* widgets/promo-timer – beige promo box: countdown + code to copy.
+   Layout follows the width of the box (container query), not the screen: it works in a narrow column of a product page too.
+   Colours: --rk-promo-bg (box), --rk-promo-fg (text). */
+.rk-pt, .rk-pt * {
+  box-sizing: border-box;
+}
+
+.rk-pt [hidden] {
+  display: none !important;
+}
+
+.rk-pt {
+  container-type: inline-size;
+  width: 100%;
+  font-family: var(--font-body, Roboto, system-ui, sans-serif);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.rk-pt__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  text-align: center;
+  background: var(--rk-promo-bg, #e5d4ac);
+  color: var(--rk-promo-fg, #000);
+}
+
+.rk-pt__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.rk-pt__text {
+  margin: 0;
+  font-size: 16px;
+}
+
+.rk-pt__code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 14px;
+}
+
+.rk-pt__code-line {
+  font-size: 16px;
+}
+
+.rk-pt__code-line b {
+  font-weight: 700;
+}
+
+/* "Skopiuj kod [icon]": a text button; after copying it only gets an outline ("Skopiowano kod") */
+.rk-pt__copy {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  margin: -6px -14px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+
+.rk-pt__copy-label {
+  display: inline-block;
+  min-width: 14ch;
+  text-align: left;
+}
+
+/* same width for both labels */
+.rk-pt__copy svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rk-pt__copy:hover {
+  opacity: .75;
+}
+
+.rk-pt__copy:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.rk-pt.is-copied .rk-pt__copy {
+  border-color: currentColor;
+}
+
+/* only the outline appears: the size never changes */
+.rk-pt__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.rk-pt__timer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.rk-pt__seg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 74px;
+}
+
+.rk-pt__seg b {
+  font: 700 44px/1.1 var(--font-body, Roboto, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.rk-pt__seg small {
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.rk-pt__sep {
+  padding: 10px 2px 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Layout follows the width of the box, not the screen (works in a narrow product page column too) */
+@container (max-width: 520px) {
+  .rk-pt__box {
+    padding: 16px 10px;
+  }
+
+  .rk-pt__seg {
+    min-width: 58px;
+  }
+
+  .rk-pt__seg b {
+    font-size: 36px;
+  }
+
+  .rk-pt__seg small {
+    font-size: 14px;
+  }
+}
+
+@container (min-width: 760px) {
+  .rk-pt__box {
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(48px, 12cqw, 140px);
+    min-height: 140px;
+    padding: 24px 32px;
+  }
+
+  .rk-pt__info {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .rk-pt__code {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rk-pt__copy {
+    transition: none;
+  }
+}

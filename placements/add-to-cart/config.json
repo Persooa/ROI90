@@ -14,6 +14,18 @@
       "autoplay": false,
       "autoplayMs": 5000,
       "step": "card"
+    },
+    {
+      "vertical": "home",
+      "widget": "promo-timer",
+      "frameLabel": "Scenariusz ROI · Promocja z timerem na karcie produktu",
+      "pageTitle": "Promocja z timerem – karta produktu | Demo ROI",
+      "pageDescription": "Demo ramki z kodem rabatowym i timerem na karcie produktu – wersja desktop i mobile.",
+      "title": "Promocja z timerem",
+      "anchor": "NH10597",
+      "pick": ["NH10604", "NH10610", "NH10619"],
+      "autoplay": false,
+      "step": "card"
     }
   ]
 }
