@@ -36,14 +36,15 @@
 }
 
 /* ---- Tab: the black strip. X and chevron share one column and one centre line ---- */
+/* The label is centred in the whole strip; X (top) and chevron (bottom) are pinned to the ends, so it never moves when the panel opens */
 .rk-sl__tab {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
   width: var(--sl-w);
-  padding: 10px 0;
+  padding: 68px 0;
   background: var(--sl-bg);
   color: var(--sl-fg);
   border-radius: 14px 0 0 14px;
@@ -53,12 +54,10 @@
   border-radius: 0 14px 14px 0;
 }
 
+/* Open: the dismiss button is hidden but keeps its space, so the label stays exactly where it was (centred) */
 .rk-sl[data-open="on"] .rk-sl__dismiss {
-  display: none;
-}
-
-.rk-sl[data-open="on"] .rk-sl__tab {
-  justify-content: flex-end;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .rk-sl__dismiss, .rk-sl__toggle, .rk-sl__x {
@@ -72,28 +71,27 @@
 }
 
 .rk-sl__dismiss {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 50%;
+  margin-left: -20px;
   display: grid;
   place-items: center;
-  flex: none;
   width: 40px;
   height: 40px;
   border-radius: 50%;
 }
 
+/* The toggle covers the whole strip, so the label and the chevron are both clickable; the dismiss button sits above it */
 .rk-sl__toggle {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  width: 100%;
-  min-height: 0;
-  padding: 10px 0 4px;
-}
-
-.rk-sl[data-open="on"] .rk-sl__toggle {
-  flex: 0 1 auto;
+  justify-content: center;
+  padding: 0;
+  border-radius: inherit;
 }
 
 .rk-sl__dismiss svg, .rk-sl__x svg, .rk-sl__chev {
@@ -109,7 +107,12 @@
 
 /* Chevron points to the side the panel opens to; it turns around when the panel is open */
 .rk-sl__chev {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  margin-left: -13px;
   transition: transform .25s;
+  pointer-events: none;
 }
 
 .rk-sl[data-open="on"] .rk-sl__chev {
